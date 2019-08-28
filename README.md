@@ -132,7 +132,7 @@ function localtls(dnsserver) {
 	});
 }
 
-var app = express();
+var app = express(), https;
 try {
 	let keys = await localtls('http://yourdomain.net');
 	https = require('https').createServer(keys, app);

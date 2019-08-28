@@ -82,7 +82,10 @@ class Resolver(ProxyResolver):
         logger.info("query %s", request.q.qname)
 
         # handle the main domain
-        if name == confs.BASE_DOMAIN or name == 'ns1.' + confs.BASE_DOMAIN or name == 'ns2.' + confs.BASE_DOMAIN or name == '_acme-challenge.' + confs.BASE_DOMAIN:
+        if (name == confs.BASE_DOMAIN or 
+            name == 'www.' + confs.BASE_DOMAIN or
+            name == '_acme-challenge.' + confs.BASE_DOMAIN
+        ):
             r = RR(
                 rname=request.q.qname,
                 rdata=dns.A(confs.LOCAL_IPV4),
@@ -104,13 +107,17 @@ class Resolver(ProxyResolver):
                 )
                 reply.add_answer(r)
             return reply
+        elif (name == 'ns1.' + confs.BASE_DOMAIN or 
+            name == 'ns2.' + confs.BASE_DOMAIN 
+        ):
+            # TODO
+            pass
         # handle subdomains
         elif name.matchSuffix(confs.BASE_DOMAIN): # fnmatch
             labelstr = str(request.q.qname)
             logger.info("request: %s", labelstr)
             mv4 = re.match('^([0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3})\.' + confs.BASE_DOMAIN + '\.$', labelstr)
             if mv4:
-                logger.info("got mv4")
                 ipv4 = mv4.group(1).replace('-', '.')
 
                 # check if valid ip
@@ -154,10 +161,12 @@ def handle_sig(signum, frame):
     logger.info('pid=%d, got signal: %s, stopping...', os.getpid(), signal.Signals(signum).name)
     exit(0)
 
+# this is used to hear for new TXT records from the certbotdns script. We need to get them ASAP to
+# validate the certbot request.
 def messageListener():
     global TXT_RECORDS
     address = ('localhost', 6000)     # family is deduced to be 'AF_INET'
-    listener = Listener(address, authkey=os.getenv('KEY', b'secret'))
+    listener = Listener(address, authkey=os.getenv('KEY', b'secret')) # not very secret, but we're bound to localhost.
     while True:
         conn = None
         try:
@@ -165,7 +174,6 @@ def messageListener():
             msg = conn.recv()
             # do something with msg
             msg = json.loads(msg, encoding="utf-8")
-            logger.info("MESSAGE %s", msg)
             if msg['command'] == "ADDTXT":
                 TXT_RECORDS[msg["key"]] = msg["val"]
             elif msg['command'] == "REMOVETXT":
@@ -179,7 +187,6 @@ def messageListener():
     listener.close()
 
 def main():
-    print("asdfas")
     signal.signal(signal.SIGTERM, handle_sig)
 
     parser = argparse.ArgumentParser(description='LocalTLS')
@@ -239,7 +246,6 @@ def main():
     except:
         logger.critical('Invalid IPV6 %s', LOCAL_IPV6)
         sys.exit(1)
-    
     confs.BASE_DOMAIN = args.domain
     logger.setLevel(args.log_level)
 
@@ -258,6 +264,7 @@ def main():
     udp_server.start_thread()
     tcp_server.start_thread()
 
+    # open the HTTP server
     if args.http_port:
         threadHTTP = threading.Thread(target=httpserver.run, kwargs={"port": int(args.http_port), "index": args.http_index_file})
         threadHTTP.start()

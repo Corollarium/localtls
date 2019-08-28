@@ -1,26 +1,27 @@
 # localtls
 
-This is a simple DNS server in Python3 for providing TLS to webservices on local addresses. 
+This is a simple DNS server in Python3 for providing TLS to webservices on local addresses. In short, it resolves  resolving addresses such as '192-168-0-1.yourdomain.net' to 192.168.0.1 and provides a valid TLS certificate for it.  
 
-This was written to circumvent the problem that current browsers require a secure context for a number of operations, such as opening the camera with `getUserMedia`, but the web service is running on a local network. It can also be used to develop and debug applications that require secure contexts.
+This was written to circumvent the problem that current browsers require a secure context for a number of operations, such as opening the camera with `getUserMedia`, but the web service is running on a local network, where it is difficult to get a certificate. It can also be used to easily develop and debug applications that require secure contexts.
 
-It's a very simple DNS server written in Python, which uses [Let's Encrypt](https://letsencrypt.org/) to generate a wildcard certificate for *.yourdomain.net. This certificate, both private and public keys, is available for download via a REST call on a simple HTTP server also provided.
+It's a very simple DNS server written in Python, which uses [Let's Encrypt](https://letsencrypt.org/) to generate a wildcard certificate for *.yourdomain.net on a real DNS server. This certificate, both private and public keys, is available for download via a REST call on a simple HTTP server also provided.
 
 ## Technical explanation and motivation
 
 Browsers require <a href="https://w3c.github.io/webappsec-secure-contexts/">a secure context</a> (<a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts">MDN</a>) for several Web APIs to work. While this is simple for public websites, it is a difficult issue for intranets and private IPs.
 
 This software provides:
-1. a simple DNS server that resolves to IP.yourdomain.net (with dots replaced by dashes) to IP.
-2. a one-liner to generate and renew a valid certificate with LetsEncrypt, using DNS authentication. This script should be run every two months at least, but we suggest once a month.
-3. a simple HTTP server showing this help and with an endpoint with the certificate keys, including the private key.
+
+1. a simple DNS server that resolves to IP.yourdomain.net (for local IPs, see below) to IP.
+1. a one-liner to generate and renew a valid certificate with LetsEncrypt, using DNS authentication. This script should be run every two months at least, but we suggest once a month.
+1. a simple HTTP server showing an index.html and with a REST endpoint with the certificate keys, including the private key.
 
 ## What this DNS resolves
 
-* yourdomain.net: your server IP, both A and AAAA records.
-* ns1.yourdomain.net, ns2.yourdomain.net, www.yourdomain.net: your server IP, both A and AAAA records.
+* yourdomain.net, www.yourdomain.net: your server IP, both A and AAAA records.
 * a-b-c-d.yourdomain.net, where a.b.c.d is a valid private network IPV4 (192.168.0.0–192.168.255.255, 172.16.0.0–172.31.255.255 and 10.0.0.0–10.255.255.255): resolves to A record of a.b.c.d. In other words, replace . by -.
 * fe80-[xxx].yourdomain.net: resolves to AAAA record of fe80:[xxx]. In other words, replace : by -.
+* ns1.yourdomain.net, ns2.yourdomain.net: TODO.
 * anything else: falls back to another DNS server.
 
 ## Security considerations

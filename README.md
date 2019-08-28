@@ -6,7 +6,7 @@ This was written to circumvent the problem that current browsers require a secur
 
 It's a very simple DNS server written in Python, which uses [Let's Encrypt](https://letsencrypt.org/) to generate a wildcard certificate for *.domain.com. This certificate, both private and public keys, is available for download via a REST call.
 
-## Techincal explanation and motiviation
+## Technical explanation and motivation
 
 Browsers require <a href="https://w3c.github.io/webappsec-secure-contexts/">a secure context</a>
 (<a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts">MDN</a>)  

@@ -15,6 +15,14 @@ This software provides:
 2. a one-liner to generate and renew a valid certificate with LetsEncrypt, using DNS authentication. This script should be run every two months at least, but we suggest once a month.
 3. a simple HTTP server showing this help and with an endpoint with the certificate keys, including the private key.
 
+## What this DNS resolves
+
+* yourdomain.net: your server IP, both A and AAAA records.
+* ns1.yourdomain.net, ns2.yourdomain.net, www.yourdomain.net: your server IP, both A and AAAA records.
+* a-b-c-d.yourdomain.net, where a.b.c.d is a valid private network IPV4 (192.168.0.0–192.168.255.255, 172.16.0.0–172.31.255.255 and 10.0.0.0–10.255.255.255): resolves to A record of a.b.c.d. In other words, replace . by -.
+* fe80-[xxx].yourdomain.net: resolves to AAAA record of fe80:[xxx], replace : by -.
+* anything else: fallbacks to another DNS server.
+
 ## Security considerations
 
 "But if you provide the public and the private key, someone can do a man-in-the-middle attack!" Yes, that is correct. This is *as safe as a plain HTTP website if you release the private key*. 
@@ -27,13 +35,13 @@ The second: you need not only a secure context for the browser, but actual safet
 
 # How to Run
 
-## Base install
+## Base installation and deps
 
 You essentially need Python3, certbot and the dnslib, python-daemon and lockfile PIPs.
 
-We provide a simple install.bash script that installs all you need to run this software in an Ubuntu installation. And hey, if you are running your own DNS server you should know what to do anyway.
+We provide a simple `util/ubuntu-install.bash` script that installs all you need to be able to run this software on a fresh Ubuntu installation. And hey, if you are running your own DNS server you should know what to do anyway.
 
-## The server
+## The DNS server
 
 Run: `python3 dnsserver.py`.
 
@@ -45,7 +53,9 @@ Run `python3 dnsserver.py --help` for a list of arguments.
 * `--http-port`: the HTTP server port. If not set, no HTTP server is started. The HTTP server is used to serve a index.html for the `/` location and the `/keys` with the keys.
 * `--log-level`: INFO|WARNING|ERROR|DEBUG.
 
-## Testing
+This software uses port 6000 for internal communication. It is bound to 127.0.0.1, but still, make sure it's firewalled.
+
+### Testing
 
 Run locally with:
 
@@ -57,12 +67,13 @@ Run dig to test:
 
 ## Renewing keys
 
-You should renew keys once a month, according to the recommendation of Let's Encrypt. To simulate certbot DNS hooks:
+You should renew keys once a month, according to the recommendation of Let's Encrypt. Run this with the proper domain: 
 
-`CERTBOT_DOMAIN=yourdomain.net CERTBOT_VALIDATION=xxx python3 certbottxt.py deploy`
-`CERTBOT_DOMAIN=yourdomain.net CERTBOT_VALIDATION=xxx CERTBOT_AUTH_OUTPUT=_acme-challenge.asdf.com python3 certbottxt.py cleanup`
+`python3 certbotdns.py renovate yourdomain.net email@yourdomain.net`
 
-# Using keys in your webservice
+# Using this in your webservice
+
+We at [Corollarium](https://corollarium.com) provide a public DNS server that can be freely used by anyone at [TODO]. It's used in our [video wall](https://softwarevideowall.com).
 
 You should fetch the keys remotely before you open your webservice. Keys are valid for three months, but renewed every month. If your service runs continuously for longer than that you should either restart the service or make it poll and replace the keys every 24h or so.
 
@@ -74,3 +85,8 @@ First, make sure you run with `--http-port`. Make a REST GET rest for `[DOMAIN]/
 * fullchain: the full chain certificate.
 
 This follows the same pattern of files created by Let's Encrypt.
+
+# Credits
+
+* Inspiration from [SSLIP](https://sslip.io) and [XIP](http://xip.io/)
+* [Blog post explaining how to generate certificates per server](https://blog.heckel.io/2018/08/05/issuing-lets-encrypt-certificates-for-65000-internal-servers/)

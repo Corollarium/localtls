@@ -67,7 +67,7 @@ This software uses port 6000 for internal communication. It is bound to 127.0.0.
 
 ## Slave DNS server
 
-To have secondary NS servers, run dnsserver.py without a HTTP server, using the same domain but pointing to the main server.
+To have secondary NS servers, run dnsserver.py without a HTTP server. Remember to set `--domain-ipv4` and `--domain-ipv6` to the master server. Do not run certbotdns.py on the slave servers.
 
 ### Testing
 

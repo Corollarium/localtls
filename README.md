@@ -1,24 +1,24 @@
 # localtls
 
-This is a simple DNS server in Python3 for providing TLS to webservices on local addresses. In short, it resolves  resolving addresses such as '192-168-0-1.yourdomain.net' to 192.168.0.1 and provides a valid TLS certificate for it.  
+This is a simple DNS server in Python3 to provide TLS to webservices on local addresses. In short, it resolves addresses such as '192-168-0-1.yourdomain.net' to 192.168.0.1 and has a valid TLS certificate for them.
 
-This was written to circumvent the problem that current browsers require a secure context for a number of operations, such as opening the camera with `getUserMedia`, but the web service is running on a local network, where it is difficult to get a certificate. It can also be used to easily develop and debug applications that require secure contexts.
+This was written to circumvent the problem that current browsers require a secure context for a number of operations, such as opening the camera with `getUserMedia`, but the web service is running on a local network, where it is difficult to get a certificate or handling the local DNS servers is difficult or impossible (aham users aham). It can also be used to easily develop and debug web applications that require secure contexts other than in localhost.
 
-It's a very simple DNS server written in Python, which uses [Let's Encrypt](https://letsencrypt.org/) to generate a wildcard certificate for *.yourdomain.net on a real DNS server. This certificate, both private and public keys, is available for download via a REST call on a simple HTTP server also provided.
+Technically it's a very simple DNS server written in Python, which uses [Let's Encrypt](https://letsencrypt.org/) to generate a wildcard certificate for *.yourdomain.net on a real public server. This certificate, both private and public keys, is available for download via a REST call on a simple HTTP server also provided.
 
 ## Technical explanation and motivation
 
-Browsers require <a href="https://w3c.github.io/webappsec-secure-contexts/">a secure context</a> (<a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts">MDN</a>) for several Web APIs to work. While this is simple for public websites, it is a difficult issue for intranets and private IPs.
+Browsers require <a href="https://w3c.github.io/webappsec-secure-contexts/">a secure context</a> (<a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts">MDN</a>) for several Web APIs to work. While this is simple for public websites, it is a difficult issue for intranets and private IPs. When you're deploying applications on networks that you have no control, it's a nightmare.
 
 This software provides:
 
-1. a simple DNS server that resolves to IP.yourdomain.net (for local IPs, see below) to IP.
-1. a one-liner to generate and renew a valid certificate with LetsEncrypt, using DNS authentication. This script should be run every two months at least, but we suggest once a month.
-1. a simple HTTP server showing an index.html and with a REST endpoint with the certificate keys, including the private key.
+1. a simple DNS server that resolves to IP.yourdomain.net (for local IPs, see below) to IP and should run on a public internet server.
+1. an embedded simple HTTP server showing an index.html and with a REST endpoint with the certificate keys, including the private key.
+1. a one-liner to generate and renew a valid certificate with LetsEncrypt, using DNS authentication. This script should be run once a month.
 
 ## What this DNS resolves
 
-* yourdomain.net, www.yourdomain.net: your server IP, both A and AAAA records.
+* yourdomain.net, www.yourdomain.net: to your server IP, both A and AAAA (if it exists) records.
 * a-b-c-d.yourdomain.net, where a.b.c.d is a valid private network IPV4 (192.168.0.0–192.168.255.255, 172.16.0.0–172.31.255.255 and 10.0.0.0–10.255.255.255): resolves to A record of a.b.c.d. In other words, replace . by -.
 * fe80-[xxx].yourdomain.net: resolves to AAAA record of fe80:[xxx]. In other words, replace : by -.
 * ns1.yourdomain.net, ns2.yourdomain.net: TODO.
@@ -28,11 +28,11 @@ This software provides:
 
 "But if you provide the public and the private key, someone can do a man-in-the-middle attack!" Yes, that is correct. This is *as safe as a plain HTTP website if you release the private key*. 
 
-This service here aims to solve the *requirement of browsers with secure contexts in LANs with a minimum fuss*: when you are developing an app that requires TLS, for example, and want to test it on several devices. Hopefully browsers will come up with a solution that makes secure contexts in intranets easier in the future, but it has been a problem for years and it's still unsolved.
+This service here aims to solve the *requirement of browsers with secure contexts in LANs with a minimum fuss*: when you are developing an app that requires TLS, for example, and want to test it on several devices locally. Or when you want to deploy a web application on customer networks that have no expertise. Hopefully browsers will come up with a solution that makes secure contexts in intranets easier in the future, but it has been a problem for years and it's still unsolved at this time.
 
-In short, you have two possible scenarios. The first: you understand that by using this you may be prone for a MITM attack, but you need a secure context in the browser more than you need absolute certainty that your traffic will not be snooped or your application won't be spoofed. This works for most webservices running in a LAN, and is as safe as running them on pure HTTP.
+In short, you have two possible scenarios. The first: you understand that by using this you may be prone for a MITM attack, but you need a secure context in the browser no matter what, and you do need absolute certainty that your traffic will not be snooped or your application won't be spoofed. This works for most webservices running in a LAN, and is as safe as running them on pure HTTP.
 
-The second: you need not only a secure context for the browser, but actual safety of a TLS certificate validated by the browser. In this case run the DNS server yourself and do not publish the private keys, but find someway to distribute them yourself privately to your application. Remember, any application you deploy using TLS will require a private key deployed with it. When distributing web apps that are supposed to run in intranets which you have no access this is hard to do; you'd ideally need to generate a different key for every host, even though they may use the same private IP, you have no accessto a local nameserver and other complications. There is a [nice proposal of how this can be done](https://blog.heckel.io/2018/08/05/issuing-lets-encrypt-certificates-for-65000-internal-servers/) if you need this level of security.
+The second: you need not only a secure context for the browser, but actual safety of a private TLS certificate validated by the browser. In this case you can run the DNS server yourself and not publish the private keys, but find someway to distribute them yourself privately to your application. Remember, any application you deploy using TLS will require a private key deployed with it. When distributing web apps that are supposed to run in intranets which you have no access this is hard to do; you'd ideally need to generate a different key for every host, even though they may use the same private IP, you have no accessto a local nameserver and other complications. There is a [nice proposal of how this can be done](https://blog.heckel.io/2018/08/05/issuing-lets-encrypt-certificates-for-65000-internal-servers/) if you need this level of security.
 
 # How to Run
 
@@ -46,7 +46,7 @@ The second: you need not only a secure context for the browser, but actual safet
 
 ## Base installation and deps
 
-You essentially need Python 3.6 or above, certbot and the dnslib, python-daemon and lockfile PIPs.
+You essentially need Python 3.6 or above, certbot and the dnslib PIP.
 
 We provide a simple `util/ubuntu-install.bash` script that installs all you need to be able to run this software on a fresh Ubuntu installation. And hey, if you are running your own DNS server you should know what to do anyway.
 
@@ -57,8 +57,10 @@ Run: `python3 dnsserver.py`.
 Run `python3 dnsserver.py --help` for a list of arguments.
 
 * `--domain`: REQUIRED. Your domain or subdomain.
-* `--dns-port`: DNS server port.
+* `--dns-port`: DNS server port. Defaults to 53. You need to be root on linux to run this on a port < 1024.
 * `--dns-fallback`: The DNS fallback server. This server can be used as full DNS resolver in your network, falling back to this server.
+* `--domain-ipv4`: The ipv4 for the naked domain. Defaults to the server IPV4. 
+* `--domain-ipv6`: The ipv6 for the naked domain. Defaults to the server IPV6.
 * `--http-port`: the HTTP server port. If not set, no HTTP server is started. The HTTP server is used to serve a index.html for the `/` location and the `/keys` with the keys.
 * `--http-index-file`: path to the HTTP index html. We don't serve assets. The file is read upon start and cached. 
 * `--log-level`: INFO|WARNING|ERROR|DEBUG. You should run on ERROR level in production.
@@ -73,7 +75,7 @@ To have secondary NS servers, run dnsserver.py without a HTTP server. Remember t
 
 Run locally with:
 
-`python3 dnsserver.py --dns-port=5300`
+`python3 dnsserver.py --domain=yourdomain.net --dns-port=5300`
 
 Run dig to test:
 

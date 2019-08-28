@@ -8,13 +8,10 @@ It's a very simple DNS server written in Python, which uses [Let's Encrypt](http
 
 ## Technical explanation and motivation
 
-Browsers require <a href="https://w3c.github.io/webappsec-secure-contexts/">a secure context</a>
-(<a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts">MDN</a>)  
-for several Web APIs to work. While this is simple for public websites, it is a difficult issue for
-intranets and private IPs.
+Browsers require <a href="https://w3c.github.io/webappsec-secure-contexts/">a secure context</a> (<a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts">MDN</a>) for several Web APIs to work. While this is simple for public websites, it is a difficult issue for intranets and private IPs.
 
 This software provides:
-1. a simple DNS server that resolves to IP.yourdomain.com (with dots replaced by dashes) to IP.
+1. a simple DNS server that resolves to IP.yourdomain.net (with dots replaced by dashes) to IP.
 2. a one-liner to generate and renew a valid certificate with LetsEncrypt, using DNS authentication. This script should be run every two months at least, but we suggest once a month.
 3. a simple HTTP server showing this help and with an endpoint with the certificate keys, including the private key.
 
@@ -26,7 +23,7 @@ This service here aims to solve the *requirement of browsers with secure context
 
 In short, you have two possible scenarios. The first: you understand that by using this you may be prone for a MITM attack, but you need a secure context in the browser more than you need absolute certainty that your traffic will not be snooped or your application won't be spoofed. This works for most webservices running in a LAN, and is as safe as running them on pure HTTP.
 
-The second: you need not only a secure context for the browser, but actual safety of a TLS certificate validated by the browser. In this case run the DNS server yourself and do not publish the private keys, but find someway to distribute them yourself privately to your application. Remember, any application you deploy using TLS will require a private key deployed with it. When distributing web apps that are supposed to run in intranets which you have no access this is hard to do; you'd ideally need to generate a different key for every host, even though they may use the same private IP, you have no accessto a local nameserver and other complications. There is a (nice proposal of how this can be done)[https://blog.heckel.io/2018/08/05/issuing-lets-encrypt-certificates-for-65000-internal-servers/] if you need this level of security.
+The second: you need not only a secure context for the browser, but actual safety of a TLS certificate validated by the browser. In this case run the DNS server yourself and do not publish the private keys, but find someway to distribute them yourself privately to your application. Remember, any application you deploy using TLS will require a private key deployed with it. When distributing web apps that are supposed to run in intranets which you have no access this is hard to do; you'd ideally need to generate a different key for every host, even though they may use the same private IP, you have no accessto a local nameserver and other complications. There is a [nice proposal of how this can be done](https://blog.heckel.io/2018/08/05/issuing-lets-encrypt-certificates-for-65000-internal-servers/) if you need this level of security.
 
 # How to Run
 

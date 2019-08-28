@@ -20,8 +20,8 @@ This software provides:
 * yourdomain.net: your server IP, both A and AAAA records.
 * ns1.yourdomain.net, ns2.yourdomain.net, www.yourdomain.net: your server IP, both A and AAAA records.
 * a-b-c-d.yourdomain.net, where a.b.c.d is a valid private network IPV4 (192.168.0.0–192.168.255.255, 172.16.0.0–172.31.255.255 and 10.0.0.0–10.255.255.255): resolves to A record of a.b.c.d. In other words, replace . by -.
-* fe80-[xxx].yourdomain.net: resolves to AAAA record of fe80:[xxx], replace : by -.
-* anything else: fallbacks to another DNS server.
+* fe80-[xxx].yourdomain.net: resolves to AAAA record of fe80:[xxx]. In other words, replace : by -.
+* anything else: falls back to another DNS server.
 
 ## Security considerations
 
@@ -51,7 +51,8 @@ Run `python3 dnsserver.py --help` for a list of arguments.
 * `--dns-port`: DNS server port.
 * `--dns-fallback`: The DNS fallback server. This server can be used as full DNS resolver in your network, falling back to this server.
 * `--http-port`: the HTTP server port. If not set, no HTTP server is started. The HTTP server is used to serve a index.html for the `/` location and the `/keys` with the keys.
-* `--log-level`: INFO|WARNING|ERROR|DEBUG.
+* `--http-index-file`: path to the HTTP index html. We don't serve assets. The file is read upon start and cached. 
+* `--log-level`: INFO|WARNING|ERROR|DEBUG. You should run on ERROR level in production.
 
 This software uses port 6000 for internal communication. It is bound to 127.0.0.1, but still, make sure it's firewalled.
 
@@ -86,7 +87,8 @@ First, make sure you run with `--http-port`. Make a REST GET rest for `[DOMAIN]/
 
 This follows the same pattern of files created by Let's Encrypt.
 
-# Credits
+# About and credits
 
+* Developed by [Corollarium](https://corollarium.com) and released under the MIT license.
 * Inspiration from [SSLIP](https://sslip.io) and [XIP](http://xip.io/)
 * [Blog post explaining how to generate certificates per server](https://blog.heckel.io/2018/08/05/issuing-lets-encrypt-certificates-for-65000-internal-servers/)

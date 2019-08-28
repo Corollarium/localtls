@@ -4,7 +4,7 @@ This is a simple DNS server in Python3 for providing TLS to webservices on local
 
 This was written to circumvent the problem that current browsers require a secure context for a number of operations, such as opening the camera with `getUserMedia`, but the web service is running on a local network. It can also be used to develop and debug applications that require secure contexts.
 
-It's a very simple DNS server written in Python, which uses [Let's Encrypt](https://letsencrypt.org/) to generate a wildcard certificate for *.domain.com. This certificate, both private and public keys, is available for download via a REST call.
+It's a very simple DNS server written in Python, which uses [Let's Encrypt](https://letsencrypt.org/) to generate a wildcard certificate for *.yourdomain.net. This certificate, both private and public keys, is available for download via a REST call on a simple HTTP server also provided.
 
 ## Technical explanation and motivation
 
@@ -35,13 +35,21 @@ The second: you need not only a secure context for the browser, but actual safet
 
 # How to Run
 
+## Overview
+
+1. Get a server. It doesn't need to be big. Ideally you should have at least one slave, too, because NS entries require at least two servers.
+1. Point the NS entry of your domain to this server.
+1. Install deps.
+1. Run dnsserver.py.
+1. Create the certificates running certbotdns.py.
+
 ## Base installation and deps
 
-You essentially need Python3, certbot and the dnslib, python-daemon and lockfile PIPs.
+You essentially need Python 3.6 or above, certbot and the dnslib, python-daemon and lockfile PIPs.
 
 We provide a simple `util/ubuntu-install.bash` script that installs all you need to be able to run this software on a fresh Ubuntu installation. And hey, if you are running your own DNS server you should know what to do anyway.
 
-## The DNS server
+## The main DNS server
 
 Run: `python3 dnsserver.py`.
 
@@ -55,6 +63,10 @@ Run `python3 dnsserver.py --help` for a list of arguments.
 * `--log-level`: INFO|WARNING|ERROR|DEBUG. You should run on ERROR level in production.
 
 This software uses port 6000 for internal communication. It is bound to 127.0.0.1, but still, make sure it's firewalled.
+
+## Slave DNS server
+
+To have secondary NS servers, run dnsserver.py without a HTTP server, using the same domain but pointing to the main server.
 
 ### Testing
 
@@ -72,6 +84,10 @@ You should renew keys once a month, according to the recommendation of Let's Enc
 
 `python3 certbotdns.py renovate yourdomain.net email@yourdomain.net`
 
+Here's a cron line to run it monthly: 
+
+`0 0 1 * * python3 /path/to/certbotdns.py renovate yourdomain.net email@yourdomain.net`
+
 # Using this in your webservice
 
 We at [Corollarium](https://corollarium.com) provide a public DNS server that can be freely used by anyone at [TODO]. It's used in our [video wall](https://softwarevideowall.com).
@@ -86,6 +102,46 @@ First, make sure you run with `--http-port`. Make a REST GET rest for `[DOMAIN]/
 * fullchain: the full chain certificate.
 
 This follows the same pattern of files created by Let's Encrypt.
+
+## Node.js code
+
+This code will try to get the keys until a timeout and open a HTTPS server using those keys locally. Remember to replace `yourdomain.net`.
+
+```
+function localtls(dnsserver) {
+	const request = require('request');
+	return new Promise(function(resolve, reject) {
+		request({
+			uri: dnsserver + '/keys',
+			timeout: 10000,
+		}, function (error, response, body) {
+			if (error) {
+				reject(error);
+			}
+			else {
+				try {
+					let d = JSON.parse(body);
+					resolve({key: d.privkey, cert: d.cert, ca: d.chain});
+				}
+				catch (e) {
+					reject(e);
+				}
+			}
+		});
+	});
+}
+
+var app = express();
+try {
+	let keys = await localtls('http://yourdomain.net');
+	https = require('https').createServer(keys, app);
+}
+catch(e) {
+	// pass
+	console.log("invalid https", e);
+}
+```
+	
 
 # About and credits
 

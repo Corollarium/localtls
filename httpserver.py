@@ -49,7 +49,7 @@ def run(port, index, certpath=''):
     cherrypy.config.update({
         'log.screen': False,
         'log.access_file': '',
-        'log.error_file': '',
+        'log.error_file': 'http_error_log',
         'environment': 'production',
         'server.socket_port': int(port)
     })

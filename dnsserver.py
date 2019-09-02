@@ -265,13 +265,13 @@ def main():
     udp_server = DNSServer(resolver, port=port, logger=dnslogger)
     tcp_server = DNSServer(resolver, port=port, tcp=True, logger=dnslogger)
 
-    logger.info('starting DNS server on %s/%s on port %d, upstream DNS server "%s"', confs.LOCAL_IPV4, confs.LOCAL_IPV6, port, upstream)
+    logger.critical('starting DNS server on %s/%s on port %d, upstream DNS server "%s"', confs.LOCAL_IPV4, confs.LOCAL_IPV6, port, upstream)
     udp_server.start_thread()
     tcp_server.start_thread()
 
     # open the HTTP server
     if args.http_port:
-        logger.info('Starting httpd...')
+        logger.critical('Starting httpd...')
         threadHTTP = threading.Thread(target=httpserver.run, kwargs={"port": int(args.http_port), "index": args.http_index_file})
         threadHTTP.start()
 

@@ -47,10 +47,6 @@ elif sys.argv[1] == 'wildcard' or sys.argv[1] == 'naked':
             '--manual', '--preferred-challenges=dns', '--manual-public-ip-logging-ok',
             '--manual-auth-hook', 'python3 {0} deploy'.format(script), 
             '--manual-cleanup-hook', 'python3 {0} cleanup'.format(script),
-            '--cert-path', os.path.join(BASE_PATH, basename + '-wildcard-cert.pem'),
-            '--chain-path', os.path.join(BASE_PATH, basename + '-wildcard-chain.pem'), 
-            '--key-path', os.path.join(BASE_PATH, basename + '-wildcard-key.pem'),
-            '--fullchain-path', os.path.join(BASE_PATH, basename + '-wildcard-fullchain.pem'),
             '-d', ('*.' if sys.argv[1] == 'wildcard' else '') + sys.argv[2]
         ]
         output = subprocess.run(command)

@@ -6,7 +6,7 @@ import confs
 import cherrypy
 
 INDEX_HTML='<html><body>Hi.</body></html>'
-CERT_PATH= os.path.dirname(os.path.realpath(__file__)) # TODO
+CERT_PATH='/etc/letsencrypt/live/' + confs.BASE_DOMAIN
 
 class Root(object):
     @cherrypy.expose

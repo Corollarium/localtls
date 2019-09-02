@@ -8,3 +8,4 @@ LOCAL_IPV6 = ''
 SOA_MNAME=''
 SOA_RNAME=''
 SOA_SERIAL=int(time.time())
+NS_SERVERS=[]

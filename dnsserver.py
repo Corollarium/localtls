@@ -90,6 +90,12 @@ class Resolver(ProxyResolver):
         else:
             self.SOA=None
 
+        if confs.NS_SERVERS:
+            self.NS = [dnslib.NS(i) for i in confs.NS_SERVERS]
+        else:
+            self.NS = []
+            
+
     def resolve(self, request, handler):
         global TXT_RECORDS
         reply = request.reply()
@@ -115,6 +121,15 @@ class Resolver(ProxyResolver):
                     rtype=QTYPE.SOA
                 )
                 reply.add_answer(r)
+
+            if len(self.NS):
+                for i in self.NS:
+                    r = RR(
+                        rname=request.q.qname,
+                        rdata=i,
+                        rtype=QTYPE.NS
+                    )
+                    reply.add_answer(r)
 
             if confs.LOCAL_IPV6:
                 r = RR(
@@ -217,13 +232,15 @@ def main():
     )
     parser.add_argument(
         '--soa-master',
-        required = True,
         help = "Primary master name server for SOA record. You should fill this."
     )
     parser.add_argument(
         '--soa-email',
-        required = True,
         help = "Email address for administrator for SOA record. You should fill this."
+    )
+    parser.add_argument(
+        '--ns-servers',
+        help = "List of ns servers, separated by comma"
     )
     parser.add_argument(
         '--dns-port',
@@ -261,10 +278,9 @@ def main():
     )
     args = parser.parse_args()
 
-    # TODO: we could validate these IPs.
+    # The primary addresses
     confs.LOCAL_IPV4 = args.domain_ipv4 if args.domain_ipv4 else get_ipv4()
     confs.LOCAL_IPV6 = args.domain_ipv6 if args.domain_ipv6 else get_ipv6()
-    
     try:
         ipaddress.ip_address(confs.LOCAL_IPV4)
     except:
@@ -276,10 +292,16 @@ def main():
     except:
         logger.critical('Invalid IPV6 %s', LOCAL_IPV6)
         sys.exit(1)
+    logger.setLevel(args.log_level)
+
     confs.BASE_DOMAIN = args.domain
     confs.SOA_MNAME = args.soa_master
     confs.SOA_RNAME = args.soa_email
-    logger.setLevel(args.log_level)
+    if not confs.SOA_MNAME or not confs.SOA_RNAME:
+        logger.error('Setting SOA is strongly recommended')
+        
+    if args.ns_servers:
+        confs.NS_SERVERS=args.ns_servers.split(',')
 
     # handle local messages to add TXT records
     threadMessage = threading.Thread(target=messageListener)

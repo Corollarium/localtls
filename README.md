@@ -54,13 +54,14 @@ We provide a simple `util/ubuntu-install.bash` script that installs all you need
 
 You probably want to start dnsserver in production like this:
 
-`python3 dnsserver.py --domain yourdomain.net --soa-master=ns1.yourdomain.net --soa-email=email@yourdomain.net --log-level ERROR --http-port 80 --http-index /somewhere/index.html` 
+`python3 dnsserver.py --domain yourdomain.net --soa-master=ns1.yourdomain.net --soa-email=email@yourdomain.net --ns-servers=ns1.yourdomain.net,ns2.yourdomain.net --log-level ERROR --http-port 80 --http-index /somewhere/index.html` 
 
 Run `python3 dnsserver.py --help` for a list of arguments.
 
 * `--domain`: REQUIRED. Your domain or subdomain.
 * `--soa-master`: STRONGLY RECOMMENDED. Primary master name server for SOA record. You should fill this to be compliant to RFC 1035. 
 * `--soa-email`: STRONGLY RECOMMENDED. Email address for administrator for SOA record. You should fill this to be compliant to RFC 1035.
+* `--ns-servers`: STRONGLY RECOMMENDED. The list of nameservers, separated by commas, for the NS record.
 * `--dns-port`: DNS server port. Defaults to 53. You need to be root on linux to run this on a port < 1024.
 * `--dns-fallback`: The DNS fallback server. This server can be used as full DNS resolver in your network, falling back to this server.
 * `--domain-ipv4`: The ipv4 for the naked domain. Defaults to the server IPV4. 

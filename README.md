@@ -48,15 +48,19 @@ The second: you need not only a secure context for the browser, but actual safet
 
 You essentially need Python 3.6 or above, certbot and the dnslib PIP.
 
-We provide a simple `util/ubuntu-install.bash` script that installs all you need to be able to run this software on a fresh Ubuntu installation. And hey, if you are running your own DNS server you should know what to do anyway.
+We provide a simple `util/ubuntu-install.bash` script that installs all you need to be able to run this software on a fresh Ubuntu installation. Notice it will kill the default nameserver, so you'll have no DNS resolving after your run it. Just start localtls after that. And hey, if you are running your own DNS server you should know what to do anyway.
 
 ## The main DNS server
 
-Run: `python3 dnsserver.py`.
+You probably want to start dnsserver in production like this:
+
+`python3 dnsserver.py --domain yourdomain.net --soa-master=ns1.yourdomain.net --soa-email=email@yourdomain.net --log-level ERROR --http-port 80 --http-index /somewhere/index.html` 
 
 Run `python3 dnsserver.py --help` for a list of arguments.
 
 * `--domain`: REQUIRED. Your domain or subdomain.
+* `--soa-master`: STRONGLY RECOMMENDED. Primary master name server for SOA record. You should fill this to be compliant to RFC 1035. 
+* `--soa-email`: STRONGLY RECOMMENDED. Email address for administrator for SOA record. You should fill this to be compliant to RFC 1035.
 * `--dns-port`: DNS server port. Defaults to 53. You need to be root on linux to run this on a port < 1024.
 * `--dns-fallback`: The DNS fallback server. This server can be used as full DNS resolver in your network, falling back to this server.
 * `--domain-ipv4`: The ipv4 for the naked domain. Defaults to the server IPV4. 
@@ -65,15 +69,15 @@ Run `python3 dnsserver.py --help` for a list of arguments.
 * `--http-index-file`: path to the HTTP index html. We don't serve assets. The file is read upon start and cached. 
 * `--log-level`: INFO|WARNING|ERROR|DEBUG. You should run on ERROR level in production.
 
-This software uses port 6000 for internal communication. It is bound to 127.0.0.1, but still, make sure it's firewalled.
+This software uses port 6000 for internal communication. It is bound to 127.0.0.1.
 
 ## Slave DNS server
 
-To have secondary NS servers, run dnsserver.py without a HTTP server. Remember to set `--domain-ipv4` and `--domain-ipv6` to the master server. Do not run certbotdns.py on the slave servers.
+To run a secondary NS server, we suggest run dnsserver.py without a HTTP server. Remember to set `--domain-ipv4` and `--domain-ipv6` pointing to the master server. Do not run certbotdns.py on the slave servers.
 
 ### Testing
 
-Run locally with:
+Run locally like this for a minimal test at port 5300:
 
 `python3 dnsserver.py --domain=yourdomain.net --dns-port=5300`
 
@@ -85,15 +89,19 @@ Run dig to test:
 
 You should renew keys once a month, according to the recommendation of Let's Encrypt. Run this with the proper domain: 
 
-`python3 certbotdns.py renovate yourdomain.net email@yourdomain.net`
+`python3 certbotdns.py wildcard yourdomain.net email@yourdomain.net`
+
+If you wish to generate a certificate for the naked domain 
+`python3 certbotdns.py wildcard yourdomain.net email@yourdomain.net`
+
 
 Here's a cron line to run it monthly: 
 
-`0 0 1 * * python3 /path/to/certbotdns.py renovate yourdomain.net email@yourdomain.net`
+`0 0 1 * * python3 /path/to/certbotdns.py wildcard yourdomain.net email@yourdomain.net`
 
 # Using this in your webservice
 
-We at [Corollarium](https://corollarium.com) provide a public DNS server that can be freely used by anyone at [TODO]. It's used in our [video wall](https://softwarevideowall.com).
+We at [Corollarium](https://corollarium.com) are using it at [videowall.online](http://videowall.online). It's used in our [video wall](https://softwarevideowall.com).
 
 You should fetch the keys remotely before you open your webservice. Keys are valid for three months, but renewed every month. If your service runs continuously for longer than that you should either restart the service or make it poll and replace the keys every 24h or so.
 
@@ -149,5 +157,5 @@ catch(e) {
 # About and credits
 
 * Developed by [Corollarium](https://corollarium.com) and released under the MIT license.
-* Inspiration from [SSLIP](https://sslip.io) and [XIP](http://xip.io/)
+* Inspiration from [nip.io](https://nip.io), [SSLIP](https://sslip.io) and [XIP](http://xip.io/)
 * [Blog post explaining how to generate certificates per server](https://blog.heckel.io/2018/08/05/issuing-lets-encrypt-certificates-for-65000-internal-servers/)

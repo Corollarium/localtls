@@ -1,71 +1,65 @@
 # -*- coding: utf-8 -*-
 
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import sys
-import ssl
-import json
 import confs
+import cherrypy
 
-INDEX_HTML='<html><body>Hi.</body></html>'.encode()
+INDEX_HTML='<html><body>Hi.</body></html>'
+CERT_PATH= os.path.dirname(os.path.realpath(__file__)) # TODO
 
-class HTTPHandler(BaseHTTPRequestHandler):
-    def _set_headers(self):
-        if self.path == '/keys':
-            self.send_response(200)
-            self.send_header('Content-type', 'text/json')
-        elif self.path == '/':
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-        else:
-            self.send_response(404)
-            self.send_header('Content-type', 'text/html')
-        self.end_headers()
+class Root(object):
+    @cherrypy.expose
+    def index(self):
+        return INDEX_HTML
 
-    def do_GET(self):
-        global INDEX_HTML
-        self._set_headers()
-        if self.path == '/keys':
-            privkey = cert = chain = fullchain = ''
-            try:
-                with open('/etc/letsencrypt/live/' + confs.BASE_DOMAIN + '-0001/cert.pem') as f:
-                    cert = f.read()
-                with open('/etc/letsencrypt/live/' + confs.BASE_DOMAIN + '-0001/chain.pem') as f:
-                    chain = f.read()
-                with open('/etc/letsencrypt/live/' + confs.BASE_DOMAIN + '-0001/fullchain.pem') as f:
-                    fullchain = f.read()
-                with open('/etc/letsencrypt/live/' + confs.BASE_DOMAIN + '-0001/privkey.pem') as f:
-                    privkey = f.read()
-            except ValueError as e:
-                print(str(e))
-            except:
-                print("Unexpected error:", sys.exc_info()[0])
-            self.wfile.write(
-                bytes(json.dumps({'privkey': privkey, 'cert': cert, 'chain': chain, 'fullchain': fullchain}), "utf8")
-            )
-        elif self.path == '/':
-            self.wfile.write(INDEX_HTML)
-        else:
-            self.wfile.write(bytes('<html><body>404 Not found</body></html>', "utf8"))
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def keys(self):
+        privkey = cert = chain = fullchain = ''
+        try:
+            with open(os.path.join(CERT_PATH, 'cert.pem')) as f:
+                cert = f.read()
+            with open(os.path.join(CERT_PATH, 'chain.pem')) as f:
+                chain = f.read()
+            with open(os.path.join(CERT_PATH, 'fullchain.pem')) as f:
+                fullchain = f.read()
+            with open(os.path.join(CERT_PATH, 'privkey.pem')) as f:
+                privkey = f.read()
+        except ValueError as e:
+            print(str(e))
+        except FileNotFoundError as e:
+            print(str(e))
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+        return {'privkey': privkey, 'cert': cert, 'chain': chain, 'fullchain': fullchain}
 
-    def do_HEAD(self):
-        self._set_headers()
-        
-def run(port, index):
-    global INDEX_HTML
+    @cherrypy.expose
+    def favicon_ico(self):
+        raise cherrypy.HTTPError(404)
+
+def run(port, index, certpath=''):
+    global INDEX_HTML, CERT_PATH
     try:
         with open(index) as f:
             INDEX_HTML=bytes(f.read(), "utf8")
     except:
         pass
 
-    server_address = ('', port)
-    httpd = HTTPServer(server_address, HTTPHandler)
+    cherrypy.config.update({
+        'log.screen': False,
+        'log.access_file': '',
+        'log.error_file': '',
+        'environment': 'production',
+        'server.socket_port': int(port)
+    })
+    
     if port == 443:
-        httpd.socket = ssl.wrap_socket(
-            httpd.socket, 
-            keyfile="path/to/key.pem", # TODO  
-            certfile='path/to/cert.pem', # TODO
-            server_side=True
-        )
-    httpd.serve_forever()
+        cherrypy.config.update({
+            'server.ssl_module': 'builtin',
+            'server.ssl_certificate': "cert.pem",
+            'server.ssl_private_key': "privkey.pem",
+            'server.ssl_certificate_chain': "certchain.perm"
+        })
+
+    cherrypy.quickstart(Root(), '/')

@@ -1,1 +1,2 @@
 dnslib==0.9.10
+cherrypy==18.1.2

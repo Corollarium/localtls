@@ -82,7 +82,7 @@ class Resolver(ProxyResolver):
                 times=(
                     confs.SOA_SERIAL,  # serial number
                     60 * 60 * 1,  # refresh
-                    60 * 60 * 3,  # retry
+                    60 * 60 * 2,  # retry
                     60 * 60 * 24,  # expire
                     60 * 60 * 1,  # minimum
                 )

@@ -7,7 +7,7 @@ import ssl
 import json
 import confs
 
-INDEX_HTML='<html><body>Hi.</body></html>'
+INDEX_HTML='<html><body>Hi.</body></html>'.encode()
 
 class HTTPHandler(BaseHTTPRequestHandler):
     def _set_headers(self):

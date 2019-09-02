@@ -15,6 +15,7 @@ from time import sleep
 import threading
 from multiprocessing.connection import Listener
 
+import dnslib
 from dnslib import DNSLabel, QTYPE, RR, dns
 from dnslib.proxy import ProxyResolver
 from dnslib.server import DNSServer, DNSLogger
@@ -74,6 +75,20 @@ def get_ipv6():
 class Resolver(ProxyResolver):
     def __init__(self, upstream):
         super().__init__(upstream, 53, 5)
+        if confs.SOA_MNAME and confs.SOA_RNAME:
+            self.SOA = dnslib.SOA(
+                mname=DNSLabel(confs.SOA_MNAME),
+                rname=DNSLabel(confs.SOA_RNAME.replace('@', '.')), # TODO: . before @ should be escaped
+                times=(
+                    confs.SOA_SERIAL,  # serial number
+                    60 * 60 * 1,  # refresh
+                    60 * 60 * 3,  # retry
+                    60 * 60 * 24,  # expire
+                    60 * 60 * 1,  # minimum
+                )
+            )
+        else:
+            self.SOA=None
 
     def resolve(self, request, handler):
         global TXT_RECORDS
@@ -92,6 +107,15 @@ class Resolver(ProxyResolver):
                 rtype=QTYPE.A
             )
             reply.add_answer(r)
+
+            if self.SOA:
+                r = RR(
+                    rname=request.q.qname,
+                    rdata=self.SOA,
+                    rtype=QTYPE.SOA
+                )
+                reply.add_answer(r)
+
             if confs.LOCAL_IPV6:
                 r = RR(
                     rname=request.q.qname,
@@ -99,6 +123,7 @@ class Resolver(ProxyResolver):
                     rtype=QTYPE.AAAA
                 )
                 reply.add_answer(r)
+
             if len(TXT_RECORDS):
                 r = RR(
                     rname=request.q.qname,
@@ -107,11 +132,6 @@ class Resolver(ProxyResolver):
                 )
                 reply.add_answer(r)
             return reply
-        elif (name == 'ns1.' + confs.BASE_DOMAIN or 
-            name == 'ns2.' + confs.BASE_DOMAIN 
-        ):
-            # TODO
-            pass
         # handle subdomains
         elif name.matchSuffix(confs.BASE_DOMAIN): # fnmatch
             labelstr = str(request.q.qname)
@@ -196,6 +216,16 @@ def main():
         help = "Your domain or subdomain."
     )
     parser.add_argument(
+        '--soa-master',
+        required = True,
+        help = "Primary master name server for SOA record. You should fill this."
+    )
+    parser.add_argument(
+        '--soa-email',
+        required = True,
+        help = "Email address for administrator for SOA record. You should fill this."
+    )
+    parser.add_argument(
         '--dns-port',
         default=53,
         help = "DNS server port"
@@ -247,6 +277,8 @@ def main():
         logger.critical('Invalid IPV6 %s', LOCAL_IPV6)
         sys.exit(1)
     confs.BASE_DOMAIN = args.domain
+    confs.SOA_MNAME = args.soa_master
+    confs.SOA_RNAME = args.soa_email
     logger.setLevel(args.log_level)
 
     # handle local messages to add TXT records

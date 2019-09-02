@@ -42,7 +42,7 @@ elif sys.argv[1] == 'wildcard' or sys.argv[1] == 'naked':
         script = os.path.abspath(__file__)
         basename = sys.argv[2] + '-' + sys.argv[1]
         command = [
-            'certbot', 'certonly', '--noninteractive', '--test-cert',
+            'certbot', 'certonly', '--noninteractive', # TEST: '--test-cert',
             '--agree-tos', '--email', sys.argv[3],
             '--manual', '--preferred-challenges=dns', '--manual-public-ip-logging-ok',
             '--manual-auth-hook', 'python3 {0} deploy'.format(script), 

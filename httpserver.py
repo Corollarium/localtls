@@ -80,10 +80,10 @@ def run(port, index, certpath=''):
         if ('*.' + confs.BASE_DOMAIN) in paths:
             CERT_PATH = paths['*.' + confs.BASE_DOMAIN]
         else:
-            logger.critical("Cannot find wildcard certificate, HTTP is quitting")
+            logger.critical("Cannot find wildcard certificate. Run certbotdns.py now and then restart this. Meanwhile HTTP will not work.")
             return
     except:
-        logger.critical("Cannot list certificates: {}. Run certbotdns.py now and then restart this. Meanwhile HTTP will not work.".format(sys.exc_info()[0]))
+        logger.critical("Cannot list certificates: {}. Is certbot installed?".format(sys.exc_info()[0]))
         return
     
     cherrypy.config.update({

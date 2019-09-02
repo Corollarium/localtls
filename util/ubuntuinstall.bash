@@ -24,6 +24,8 @@ echo "nameserver 127.0.0.1" > /etc/resolv.conf
 
 sudo ufw allow ssh
 sudo ufw allow 53
+sudo ufw allow 80
+sudo ufw allow 443
 sudo ufw allow 60000:61000/udp
 sudo ufw enable
 

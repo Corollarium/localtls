@@ -11,10 +11,14 @@ INDEX_HTML='<html><body>Hi.</body></html>'.encode()
 
 class HTTPHandler(BaseHTTPRequestHandler):
     def _set_headers(self):
-        self.send_response(200)
         if self.path == '/keys':
+            self.send_response(200)
             self.send_header('Content-type', 'text/json')
+        elif self.path == '/':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
         else:
+            self.send_response(404)
             self.send_header('Content-type', 'text/html')
         self.end_headers()
 
@@ -39,8 +43,10 @@ class HTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(
                 bytes(json.dumps({'privkey': privkey, 'cert': cert, 'chain': chain, 'fullchain': fullchain}), "utf8")
             )
-        else:
+        elif self.path == '/':
             self.wfile.write(INDEX_HTML)
+        else:
+            self.wfile.write(bytes('<html><body>404 Not found</body></html>', "utf8"))
 
     def do_HEAD(self):
         self._set_headers()

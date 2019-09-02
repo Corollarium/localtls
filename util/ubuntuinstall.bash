@@ -11,8 +11,8 @@ sudo apt-get update
 
 # packages
 echo "Installing updates"
-sudo apt install mosh python3-pip certbot cherrypy
-sudo pip3 install dnslib
+sudo apt install mosh python3-pip certbot
+sudo pip3 install dnslib cherrypy
 
 # kill resolved
 echo "Removing resolved"

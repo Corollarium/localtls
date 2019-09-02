@@ -22,4 +22,9 @@ sudo systemctl stop systemd-resolved
 rm -f /etc/resolv.conf
 echo "nameserver 127.0.0.1" > /etc/resolv.conf
 
+sudo ufw allow ssh
+sudo ufw allow 53
+sudo ufw allow 60000:61000/udp
+sudo ufw enable
+
 echo "Ready. Now run python3 dnsserver.py"

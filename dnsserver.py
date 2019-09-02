@@ -26,7 +26,7 @@ import confs
 handler = logging.StreamHandler()
 handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s', datefmt='%H:%M:%S'))
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('localtls')
 logger.addHandler(handler)
 
 TYPE_LOOKUP = {

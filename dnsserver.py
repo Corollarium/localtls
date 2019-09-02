@@ -17,7 +17,7 @@ from multiprocessing.connection import Listener
 
 from dnslib import DNSLabel, QTYPE, RR, dns
 from dnslib.proxy import ProxyResolver
-from dnslib.server import DNSServer
+from dnslib.server import DNSServer, DNSLogger
 
 import httpserver
 import confs 
@@ -258,12 +258,12 @@ def main():
     upstream = args.dns_fallback
     resolver = Resolver(upstream)
     if args.log_level == 'debug':
-        logmode = ["+request","+reply","+truncated","+error"]
+        logmode = "+request,+reply,+truncated,+error"
     else:
-        logmode = ["-request","-reply","-truncated","+error"]
+        logmode = "-request,-reply,-truncated,+error"
     dnslogger = DNSLogger(log=logmode, prefix=False)
-    udp_server = DNSServer(resolver, port=port, logger=logger)
-    tcp_server = DNSServer(resolver, port=port, tcp=True, logger=logger)
+    udp_server = DNSServer(resolver, port=port, logger=dnslogger)
+    tcp_server = DNSServer(resolver, port=port, tcp=True, logger=dnslogger)
 
     logger.info('starting DNS server on %s/%s on port %d, upstream DNS server "%s"', confs.LOCAL_IPV4, confs.LOCAL_IPV6, port, upstream)
     udp_server.start_thread()
@@ -271,6 +271,7 @@ def main():
 
     # open the HTTP server
     if args.http_port:
+        logger.info('Starting httpd...')
         threadHTTP = threading.Thread(target=httpserver.run, kwargs={"port": int(args.http_port), "index": args.http_index_file})
         threadHTTP.start()
 

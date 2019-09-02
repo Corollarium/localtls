@@ -60,5 +60,4 @@ def run(port, index):
             certfile='path/to/cert.pem', # TODO
             server_side=True
         )
-    print('Starting httpd...')
     httpd.serve_forever()

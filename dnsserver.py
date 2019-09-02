@@ -94,7 +94,6 @@ class Resolver(ProxyResolver):
             self.NS = [dnslib.NS(i) for i in confs.NS_SERVERS]
         else:
             self.NS = []
-            
 
     def resolve(self, request, handler):
         global TXT_RECORDS

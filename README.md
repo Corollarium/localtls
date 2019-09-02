@@ -19,9 +19,8 @@ This software provides:
 ## What this DNS resolves
 
 * yourdomain.net, www.yourdomain.net: to your server IP, both A and AAAA (if it exists) records.
-* a-b-c-d.yourdomain.net, where a.b.c.d is a valid private network IPV4 (192.168.0.0–192.168.255.255, 172.16.0.0–172.31.255.255 and 10.0.0.0–10.255.255.255): resolves to A record of a.b.c.d. In other words, replace . by -.
-* fe80-[xxx].yourdomain.net: resolves to AAAA record of fe80:[xxx]. In other words, replace : by -.
-* ns1.yourdomain.net, ns2.yourdomain.net: TODO.
+* a-b-c-d.yourdomain.net, where a.b.c.d is a valid private network IPV4 (192.168.0.0–192.168.255.255, 172.16.0.0–172.31.255.255 and 10.0.0.0–10.255.255.255): resolves to A record of a.b.c.d. In other words, replace `.` by `-`.
+* fe80-[xxx].yourdomain.net: resolves to AAAA record of fe80:[xxx]. In other words, replace `:` by `-`.
 * anything else: falls back to another DNS server.
 
 ## Security considerations
@@ -40,17 +39,17 @@ The second: you need not only a secure context for the browser, but actual safet
 
 1. Get a server. It doesn't need to be big. Ideally you should have at least one slave, too, because NS entries require at least two servers.
 1. Point the NS entry of your domain to this server.
-1. Install deps.
-1. Run dnsserver.py.
-1. Create the certificates running certbotdns.py.
+1. [Install deps](#base-installation-and-deps).
+1. [Run dnsserver.py](#running-the-dns-server).
+1. [Create the certificates running certbotdns.py](#renewing-keys).
 
 ## Base installation and deps
 
-You essentially need Python 3.6 or above, certbot and the dnslib PIP.
+You essentially need Python 3.6 or above, certbot and the dnslib and cherrypy PIPs.
 
 We provide a simple `util/ubuntu-install.bash` script that installs all you need to be able to run this software on a fresh Ubuntu installation. Notice it will kill the default nameserver, so you'll have no DNS resolving after your run it. Just start localtls after that. And hey, if you are running your own DNS server you should know what to do anyway.
 
-## The main DNS server
+## Running the DNS server
 
 You probably want to start dnsserver in production like this:
 

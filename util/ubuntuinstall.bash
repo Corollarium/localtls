@@ -12,10 +12,10 @@ sudo apt-get update
 # packages
 echo "Installing updates"
 sudo apt install mosh python3-pip certbot
-sudo pip3 install dnslib python-daemon lockfile
+sudo pip3 install dnslib
 
 # kill resolved
-"Removing resolved"
+echo "Removing resolved"
 echo "127.0.0.1 $(hostname)" >> /etc/hosts 
 sudo systemctl disable systemd-resolved
 sudo systemctl stop systemd-resolved

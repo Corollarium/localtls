@@ -51,6 +51,7 @@ def run(port, index, certpath=''):
         'log.access_file': '',
         'log.error_file': 'http_error_log',
         'environment': 'production',
+        'server.socket_host': '0.0.0.0',
         'server.socket_port': int(port)
     })
     

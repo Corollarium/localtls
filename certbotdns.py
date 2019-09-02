@@ -4,6 +4,7 @@
 import os
 import sys
 import json
+import path
 import subprocess
 from multiprocessing.connection import Client
 
@@ -11,6 +12,7 @@ from multiprocessing.connection import Client
 # CERTBOT_DOMAIN=yourdomain.net CERTBOT_VALIDATION=xxx python3 certbottxt.py deploy
 # CERTBOT_DOMAIN=yourdomain.net CERTBOT_VALIDATION=xxx CERTBOT_AUTH_OUTPUT=_acme-challenge.asdf.com python3 certbottxt.py cleanup
 
+BASE_PATH=os.path.realpath(__file__)
 CERTBOT_DOMAIN=os.getenv('CERTBOT_DOMAIN')
 CERTBOT_VALIDATION=os.getenv('CERTBOT_VALIDATION')
 
@@ -34,18 +36,23 @@ elif sys.argv[1] == 'cleanup':
     conn = Client(address, authkey=b'secret')
     conn.send(json.dumps({'command': 'REMOVETXT', 'key': CERTBOT_AUTH_OUTPUT}, ensure_ascii=False, indent=4))
     conn.close()
-elif sys.argv[1] == 'renovate':
+elif sys.argv[1] == 'wildcard' or sys.argv[1] == 'naked':
     if len(sys.argv) != 4:
         help()
     else:
         script = os.path.abspath(__file__)
+        basename = sys.argv[2] + '-' + sys.argv[1]
         command = [
             'certbot', 'certonly', '--noninteractive', '--test-cert',
             '--agree-tos', '--email', sys.argv[3],
             '--manual', '--preferred-challenges=dns', '--manual-public-ip-logging-ok',
             '--manual-auth-hook', 'python3 {0} deploy'.format(script), 
             '--manual-cleanup-hook', 'python3 {0} cleanup'.format(script),
-            '-d', '*.' + sys.argv[2]
+            '--cert-path', path.join(BASE_PATH, basename + '-wildcard-cert.pem'),
+            '--chain-path', path.join(BASE_PATH, basename + '-wildcard-chain.pem'), 
+            '--key-path', path.join(BASE_PATH, basename + '-wildcard-key.pem'),
+            '--fullchain-path', path.join(BASE_PATH, basename + '-wildcard-fullchain.pem'),
+            '-d', ('*.' if sys.argv[1] == 'wildcard' else '') + sys.argv[2]
         ]
         output = subprocess.run(command)
         print(output.stdout)

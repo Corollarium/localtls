@@ -92,16 +92,16 @@ You should renew keys once a month, according to the recommendation of Let's Enc
 `python3 certbotdns.py wildcard yourdomain.net email@yourdomain.net`
 
 If you wish to generate a certificate for the naked domain 
-`python3 certbotdns.py wildcard yourdomain.net email@yourdomain.net`
+`python3 certbotdns.py naked yourdomain.net email@yourdomain.net`
 
 
 Here's a cron line to run it monthly: 
 
-`0 0 1 * * python3 /path/to/certbotdns.py wildcard yourdomain.net email@yourdomain.net`
+`0 0 1 * * python3 /path/to/certbotdns.py wildcard yourdomain.net email@yourdomain.net; python3 /path/to/certbotdns.py naked yourdomain.net email@yourdomain.net`
 
 # Using this in your webservice
 
-We at [Corollarium](https://corollarium.com) are using it at [videowall.online](http://videowall.online). It's used in our [video wall](https://softwarevideowall.com).
+We at [Corollarium](https://corollarium.com) are using it at [videowall.online](https://videowall.online). It's used in our [video wall](https://softwarevideowall.com).
 
 You should fetch the keys remotely before you open your webservice. Keys are valid for three months, but renewed every month. If your service runs continuously for longer than that you should either restart the service or make it poll and replace the keys every 24h or so.
 

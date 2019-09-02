@@ -257,8 +257,13 @@ def main():
     port = int(args.dns_port)
     upstream = args.dns_fallback
     resolver = Resolver(upstream)
-    udp_server = DNSServer(resolver, port=port)
-    tcp_server = DNSServer(resolver, port=port, tcp=True)
+    if args.log_level == 'debug':
+        logmode = ["+request","+reply","+truncated","+error"]
+    else:
+        logmode = ["-request","-reply","-truncated","+error"]
+    dnslogger = DNSLogger(log=logmode, prefix=False)
+    udp_server = DNSServer(resolver, port=port, logger=logger)
+    tcp_server = DNSServer(resolver, port=port, tcp=True, logger=logger)
 
     logger.info('starting DNS server on %s/%s on port %d, upstream DNS server "%s"', confs.LOCAL_IPV4, confs.LOCAL_IPV6, port, upstream)
     udp_server.start_thread()

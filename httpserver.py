@@ -19,6 +19,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        global INDEX_HTML
         self._set_headers()
         if self.path == '/keys':
             privkey = cert = chain = fullchain = ''
@@ -45,6 +46,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         self._set_headers()
         
 def run(port, index):
+    global INDEX_HTML
     try:
         with open(index) as f:
             INDEX_HTML=bytes(f.read(), "utf8")

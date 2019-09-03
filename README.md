@@ -146,7 +146,18 @@ function localtls(dnsserver) {
 var app = express(), https;
 try {
 	let keys = await localtls('http://yourdomain.net');
-	https = require('https').createServer(keys, app);
+
+	// reload keys every week, see https://github.com/nodejs/node/issues/15115
+	let ctx = tls.createSecureContext(keys);
+	setInterval(() => {
+		lantls().then((k) => { keys = k; }).catch(e => {});
+	}, 7*24*60*60*1000);
+
+	https = require('https').createServer({
+		SNICallback: (servername, cb) => {
+			cb(null, ctx);
+		}
+	}, app);
 }
 catch(e) {
 	// pass

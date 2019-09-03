@@ -18,9 +18,10 @@ This software provides:
 
 ## What this DNS resolves
 
-* yourdomain.net, www.yourdomain.net: to your server IP, both A and AAAA (if it exists) records.
+* yourdomain.net: to your server IP, both A and AAAA (if it exists) records.
+* _acme-challenge.yourdomain.net also resolves like this, since it's necessary for the certbot authentication.
 * a-b-c-d.yourdomain.net, where a.b.c.d is a valid private network IPV4 (192.168.0.0–192.168.255.255, 172.16.0.0–172.31.255.255 and 10.0.0.0–10.255.255.255): resolves to A record of a.b.c.d. In other words, replace `.` by `-`.
-* fe80-[xxx].yourdomain.net: resolves to AAAA record of fe80:[xxx]. In other words, replace `:` by `-`.
+* fe80-[xxx].yourdomain.net: resolves to AAAA record of fe80:[xxx]. In other words, replace any `:` by `-`.
 * anything else: falls back to another DNS server.
 
 ## Security considerations

@@ -103,7 +103,6 @@ class Resolver(ProxyResolver):
 
         # handle the main domain
         if (name == confs.BASE_DOMAIN or 
-            name == 'www.' + confs.BASE_DOMAIN or
             name == '_acme-challenge.' + confs.BASE_DOMAIN
         ):
             r = RR(

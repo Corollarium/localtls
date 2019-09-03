@@ -108,7 +108,8 @@ class Resolver(ProxyResolver):
             r = RR(
                 rname=request.q.qname,
                 rdata=dns.A(confs.LOCAL_IPV4),
-                rtype=QTYPE.A
+                rtype=QTYPE.A,
+                ttl=60*60
             )
             reply.add_answer(r)
 
@@ -116,7 +117,8 @@ class Resolver(ProxyResolver):
                 r = RR(
                     rname=request.q.qname,
                     rdata=self.SOA,
-                    rtype=QTYPE.SOA
+                    rtype=QTYPE.SOA,
+                    ttl=60*60
                 )
                 reply.add_answer(r)
 
@@ -125,7 +127,8 @@ class Resolver(ProxyResolver):
                     r = RR(
                         rname=request.q.qname,
                         rdata=i,
-                        rtype=QTYPE.NS
+                        rtype=QTYPE.NS,
+                        ttl=60*60
                     )
                     reply.add_answer(r)
 
@@ -133,7 +136,8 @@ class Resolver(ProxyResolver):
                 r = RR(
                     rname=request.q.qname,
                     rdata=dns.AAAA(confs.LOCAL_IPV6),
-                    rtype=QTYPE.AAAA
+                    rtype=QTYPE.AAAA,
+                    ttl=60*60
                 )
                 reply.add_answer(r)
 
@@ -162,7 +166,8 @@ class Resolver(ProxyResolver):
                     r = RR(
                         rname=request.q.qname,
                         rdata=dns.A(ipv4),
-                        rtype=QTYPE.A
+                        rtype=QTYPE.A,
+                        ttl=24*60*60
                     )
                     reply.add_answer(r)
                 else:
@@ -176,7 +181,8 @@ class Resolver(ProxyResolver):
                         r = RR(
                             rname=request.q.qname,
                             rdata=dns.AAAA(ipv6),
-                            rtype=QTYPE.AAAA
+                            rtype=QTYPE.AAAA,
+                            ttl=24*60*60
                         )
                         reply.add_answer(r)
                     except:

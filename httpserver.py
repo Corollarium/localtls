@@ -73,7 +73,7 @@ def run(port, index, certpath=''):
             INDEX_HTML=bytes(f.read(), "utf8")
     except:
         pass
-
+    
     # get certificates
     try:
         paths = listCertificates()
@@ -84,16 +84,19 @@ def run(port, index, certpath=''):
             return
     except:
         logger.critical("Cannot list certificates: {}. Is certbot installed?".format(sys.exc_info()[0]))
-        return
+        #return
     
     cherrypy.config.update({
         'log.screen': False,
         'log.access_file': '',
         'log.error_file': 'http_error_log',
         'environment': 'production',
-        'server.socket_host': '0.0.0.0',
+        'server.socket_host': '::',
         'server.socket_port': int(port)
     })
+    server = cherrypy._cpserver.Server()
+    server.socket_host = '0.0.0.0'
+    server.subscribe()
     
     if port == 443 and confs.BASE_DOMAIN in paths:
         logger.info('Starting TLS server.')
@@ -109,8 +112,11 @@ def run(port, index, certpath=''):
 
         # extra server instance to dispatch HTTP
         server = cherrypy._cpserver.Server()
-        server.socket_host = "0.0.0.0"
+        server.socket_host = '::'
         server.socket_port = 80
+        server.subscribe()
+        server = cherrypy._cpserver.Server()
+        server.socket_host = '0.0.0.0'
         server.subscribe()
 
     logger.info('Starting HTTP server.')

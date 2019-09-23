@@ -109,7 +109,7 @@ def run(port, index, certpath=''):
 
         # extra server instance to dispatch HTTP
         server = cherrypy._cpserver.Server()
-        server.socket_host = confs.BASE_DOMAIN,
+        server.socket_host = confs.BASE_DOMAIN
         server.socket_port = 80
         server.subscribe()
 

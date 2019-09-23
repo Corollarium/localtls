@@ -94,9 +94,6 @@ def run(port, index, certpath=''):
         'server.socket_host': '::',
         'server.socket_port': int(port)
     })
-    server = cherrypy._cpserver.Server()
-    server.socket_host = '0.0.0.0'
-    server.subscribe()
     
     if port == 443 and confs.BASE_DOMAIN in paths:
         logger.info('Starting TLS server.')
@@ -114,9 +111,6 @@ def run(port, index, certpath=''):
         server = cherrypy._cpserver.Server()
         server.socket_host = '::'
         server.socket_port = 80
-        server.subscribe()
-        server = cherrypy._cpserver.Server()
-        server.socket_host = '0.0.0.0'
         server.subscribe()
 
     logger.info('Starting HTTP server.')

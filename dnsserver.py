@@ -152,17 +152,33 @@ class Resolver(ProxyResolver):
         # handle subdomains
         elif name.matchSuffix(confs.BASE_DOMAIN): # fnmatch
             labelstr = str(request.q.qname)
-            logger.info("request: %s", labelstr)
-            mv4 = re.match('^([0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3})\.' + confs.BASE_DOMAIN + '\.$', labelstr)
-            if mv4:
-                ipv4 = mv4.group(1).replace('-', '.')
+            logger.info("requestx: %s, %s", labelstr, confs.ONLY_PRIVATE_IPS)
 
-                # check if valid ip
-                ipv4parts = [int(x) for x in ipv4.split('.')]
-                if ((ipv4parts[0] == 192 and ipv4parts[1] == 168 and ipv4parts[2] == 0 and ipv4parts[3] <= 255) or
-                    (ipv4parts[0] == 172 and 0 <= ipv4parts[1] <= 31 and ipv4parts[2] <= 255 and ipv4parts[3] <= 255) or
-                    (ipv4parts[0] == 10 and 0 <= ipv4parts[1] <= 255 and ipv4parts[2] <= 255 and ipv4parts[3] <= 255)):
-                    logger.info("ip is %s", ipv4)
+            subdomains = labelstr.split('.')
+            print(subdomains)
+            if len(subdomains) == 4: # TODO: dynamic
+                ip = None
+                try:
+                    ip = ipaddress.ip_address(subdomains[0].replace('-', '.'))
+                except:
+                    pass
+                try:
+                    if ip == None:
+                        ip = ipaddress.ip_address(subdomains[0].replace('-', ':'))
+                except:
+                    logger.info('invalid ip %s', labelstr)
+                    return reply
+
+                # check if we only want private ips
+                if not ip.is_private and confs.ONLY_PRIVATE_IPS:
+                    return reply
+                # check if it's a valid ip for a machine
+                if ip.is_multicast or ip.is_reserved or ip.is_unspecified:
+                    return reply
+
+                if type(ip) == ipaddress.IPv4Address:
+                    ipv4 = subdomains[0].replace('-', '.')
+                    logger.info("ip is ipv4 %s", ipv4)
                     r = RR(
                         rname=request.q.qname,
                         rdata=dns.A(ipv4),
@@ -170,27 +186,20 @@ class Resolver(ProxyResolver):
                         ttl=24*60*60
                     )
                     reply.add_answer(r)
+                elif type(ip) == ipaddress.IPv6Address:
+                    ipv6 = subdomains[0].replace('-', ':')
+                    logger.info("ip is ipv6 %s", ipv6)
+                    r = RR(
+                        rname=request.q.qname,
+                        rdata=dns.AAAA(ipv6),
+                        rtype=QTYPE.AAAA,
+                        ttl=24*60*60
+                    )
+                    reply.add_answer(r)
                 else:
-                    logger.info('invalid ipv4 %s', labelstr)
-            else:
-                mv6 = re.match('^(fe80-[0-9a-f\-]{0,41})\.' + confs.BASE_DOMAIN + '\.$', labelstr)
-                if mv6: 
-                    ipv6 = mv6.group(1).replace('-', ':')
-                    try:
-                        ipaddress.ip_address(ipv6) # validate IP
-                        r = RR(
-                            rname=request.q.qname,
-                            rdata=dns.AAAA(ipv6),
-                            rtype=QTYPE.AAAA,
-                            ttl=24*60*60
-                        )
-                        reply.add_answer(r)
-                    except:
-                        # invalid ip
-                        logger.info('invalid ipv6 %s', labelstr)
-                        pass
+                    return reply
             
-            logger.info('found zone for %s, %d replies', request.q.qname, len(reply.rr))
+                logger.info('found zone for %s, %d replies', request.q.qname, len(reply.rr))
             return reply
 
         return super().resolve(request, handler)
@@ -262,6 +271,12 @@ def main():
         help = "The IPV6 for the naked domain. If empty, use this machine's."
     )
     parser.add_argument(
+        '--only-private-ips',
+        action='store_true',
+        default=False,
+        help = "Resolve only IPs in private ranges."
+    )
+    parser.add_argument(
         '--dns-fallback',
         default='1.1.1.1',
         help = "DNS fallback server. Default: 1.1.1.1"
@@ -298,6 +313,7 @@ def main():
         sys.exit(1)
     logger.setLevel(args.log_level)
 
+    confs.ONLY_PRIVATE_IPS = args.only_private_ips
     confs.BASE_DOMAIN = args.domain
     confs.SOA_MNAME = args.soa_master
     confs.SOA_RNAME = args.soa_email

@@ -9,3 +9,4 @@ SOA_MNAME=''
 SOA_RNAME=''
 SOA_SERIAL=int(datetime.datetime.now().strftime('%Y%m%d%S'))
 NS_SERVERS=[]
+ONLY_PRIVATE_IPS = False

@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='localtls',
-      version='1.0.1',
+      version='1.0.2',
       description='DNS server for local TLS',
       author='Corollarium',
       author_email='email@corollarium.com',

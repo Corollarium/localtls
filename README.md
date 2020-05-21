@@ -69,6 +69,9 @@ Run `python3 dnsserver.py --help` for a list of arguments.
 * `--http-port`: the HTTP server port. If not set, no HTTP server is started. The HTTP server is used to serve a index.html for the `/` location and the `/keys` with the keys.
 * `--http-index-file`: path to the HTTP index html. We don't serve assets. The file is read upon start and cached. 
 * `--log-level`: INFO|WARNING|ERROR|DEBUG. You should run on ERROR level in production.
+* `--only-private-ips`: Only resolve private ips.
+* `--no-reserved-ips`: Don't resolve reserved ips.
+
 
 This software uses port 6000 for internal communication. It is bound to 127.0.0.1.
 

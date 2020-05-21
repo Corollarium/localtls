@@ -155,7 +155,6 @@ class Resolver(ProxyResolver):
             logger.info("requestx: %s, %s", labelstr, confs.ONLY_PRIVATE_IPS)
 
             subdomains = labelstr.split('.')
-            print(subdomains)
             if len(subdomains) == 4: # TODO: dynamic
                 ip = None
                 try:
@@ -173,7 +172,7 @@ class Resolver(ProxyResolver):
                 if not ip.is_private and confs.ONLY_PRIVATE_IPS:
                     return reply
                 # check if it's a valid ip for a machine
-                if ip.is_multicast or ip.is_reserved or ip.is_unspecified:
+                if ip.is_multicast or ip.is_unspecified:
                     return reply
 
                 if type(ip) == ipaddress.IPv4Address:

@@ -171,6 +171,8 @@ class Resolver(ProxyResolver):
                 # check if we only want private ips
                 if not ip.is_private and confs.ONLY_PRIVATE_IPS:
                     return reply
+                if ip.is_reserved and confs.NO_RESERVED_IPS:
+                    return reply
                 # check if it's a valid ip for a machine
                 if ip.is_multicast or ip.is_unspecified:
                     return reply
@@ -276,6 +278,12 @@ def main():
         help = "Resolve only IPs in private ranges."
     )
     parser.add_argument(
+        '--no-reserved-ips',
+        action='store_true',
+        default=False,
+        help = "If true ignore ips that are reserved."
+    )
+    parser.add_argument(
         '--dns-fallback',
         default='1.1.1.1',
         help = "DNS fallback server. Default: 1.1.1.1"
@@ -313,6 +321,7 @@ def main():
     logger.setLevel(args.log_level)
 
     confs.ONLY_PRIVATE_IPS = args.only_private_ips
+    confs.NO_RESERVED_IPS = args.no_reserved_ips
     confs.BASE_DOMAIN = args.domain
     confs.SOA_MNAME = args.soa_master
     confs.SOA_RNAME = args.soa_email

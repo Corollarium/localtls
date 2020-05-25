@@ -104,3 +104,6 @@ venv.bak/
 .mypy_cache/
 /.project
 /.pydevproject
+
+# log
+http_error_log

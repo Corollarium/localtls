@@ -202,6 +202,8 @@ class Resolver(ProxyResolver):
             
                 logger.info('found zone for %s, %d replies', request.q.qname, len(reply.rr))
             return reply
+        elif self.address == "":
+            return reply
 
         return super().resolve(request, handler)
 

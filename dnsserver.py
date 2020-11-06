@@ -43,7 +43,7 @@ TYPE_LOOKUP = {
     'SOA': (dns.SOA, QTYPE.SOA),
     'SRV': (dns.SRV, QTYPE.SRV),
     'TXT': (dns.TXT, QTYPE.TXT),
-    'SPF': (dns.TXT, QTYPE.TXT),
+    'SPF': (dns.SPF, QTYPE.SPF),
 }
 
 TXT_RECORDS = {}

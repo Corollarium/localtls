@@ -43,7 +43,6 @@ TYPE_LOOKUP = {
     'SOA': (dns.SOA, QTYPE.SOA),
     'SRV': (dns.SRV, QTYPE.SRV),
     'TXT': (dns.TXT, QTYPE.TXT),
-    'SPF': (dns.SPF, QTYPE.SPF),
 }
 
 TXT_RECORDS = {}
@@ -95,10 +94,17 @@ class Resolver(ProxyResolver):
         else:
             self.NS = []
 
+    def match_suffix_insensitive(self, request):
+        name = request.q.qname
+        # skip the last dot
+        suffixLower = str(name)[-len(confs.BASE_DOMAIN)-1:-1].lower()
+        return suffixLower == confs.BASE_DOMAIN
+
     def resolve(self, request, handler):
         global TXT_RECORDS
         reply = request.reply()
         name = request.q.qname
+        
         logger.info("query %s", request.q.qname)
 
         # handle the main domain
@@ -150,7 +156,7 @@ class Resolver(ProxyResolver):
                 reply.add_answer(r)
             return reply
         # handle subdomains
-        elif name.matchSuffix(confs.BASE_DOMAIN): # fnmatch
+        elif self.match_suffix_insensitive(request):
             labelstr = str(request.q.qname)
             logger.info("requestx: %s, %s", labelstr, confs.ONLY_PRIVATE_IPS)
 

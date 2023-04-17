@@ -1,27 +1,31 @@
 #!/bin/bash
 
-echo "This script installs deps for running depserver on a Ubuntu server."
-
-# base/certbot ppa
-echo "Getting updates"
-sudo apt-get install software-properties-common
-sudo add-apt-repository universe
-sudo add-apt-repository ppa:certbot/certbot
-sudo apt-get update
+echo "This script will now install deps on your Ubuntu server..."
 
 # packages
-echo "Installing updates"
-sudo apt install mosh python3-pip certbot
+echo "Installing python, certbot and other DNS related libraries..."
+sudo apt -yq install mosh python3-pip certbot
 sudo pip3 install dnslib cherrypy
 
 # kill resolved
-echo "Removing resolved"
-echo "127.0.0.1 $(hostname)" >> /etc/hosts 
-sudo systemctl disable systemd-resolved
-sudo systemctl stop systemd-resolved
-rm -f /etc/resolv.conf
-echo "nameserver 127.0.0.1" > /etc/resolv.conf
+echo "Stopping resolved from using port 53..."
 
+sudo cat > /etc/systemd/resolved.conf << EOF
+[Resolve]
+DNS=1.1.1.1
+#FallbackDNS=
+#Domains=
+#LLMNR=no
+#MulticastDNS=no
+#DNSSEC=no
+#DNSOverTLS=no
+#Cache=no
+DNSStubListener=no
+#ReadEtcHosts=yes
+EOF
+sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+echo "Securing system with ufw..."
 sudo ufw allow ssh
 sudo ufw allow 53
 sudo ufw allow 80
@@ -29,4 +33,4 @@ sudo ufw allow 443
 sudo ufw allow 60000:61000/udp
 sudo ufw enable
 
-echo "Ready. Now run python3 dnsserver.py"
+echo "Please reboot your system after which you are ready to run python3 dnsserver.py"

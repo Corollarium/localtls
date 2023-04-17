@@ -13,15 +13,15 @@ Browsers require <a href="https://w3c.github.io/webappsec-secure-contexts/">a se
 This software provides:
 
 1. DNS server:  resolves to IP.yourdomain.net (for local IPs, see below) to IP. Run on the public internet.
-1. HTTP server: show an `index.html` as well as REST endpoint public and private keys
-1. Certbot one-liner: renews certificate with LetsEncrypt via DNS authentication. Run once a month.
+2. HTTP server: show an `index.html` as well as REST endpoint public and private keys
+3. Certbot one-liner: renews certificate with LetsEncrypt via DNS authentication. Run once a month.
 
 ## What this DNS resolves
 
-* `yourdomain.net` : to your server IP, both A and AAAA (if it exists) records.
+* `yourdomain.net` : to your server IP for both `A` and `AAAA` (if it exists) records.
 * `_acme-challenge.yourdomain.net` : necessary for the certbot authentication during renewal
-* `a-b-c-d.yourdomain.net`:  resolves to `A` record of `a.b.c.d`. (replace `.` by `-`).
-* `fe80-[xxx].yourdomain.net`: resolves to `AAAA` record of `fe80:[xxx]` (replace any `:` by `-`).
+* `a-b-c-d.yourdomain.net`:  resolves to `A` record to `a.b.c.d`. (replace `.` by `-`).
+* `fe80-[xxx].yourdomain.net`: resolves to `AAAA` record to `fe80:[xxx]` (replace any `:` by `-`).
 * `anything else`: falls back to `dns-fallback` as defined in config
 
 ## Security considerations
@@ -58,7 +58,7 @@ This software uses port 6000 for internal communication. It is bound to 127.0.0.
 
 Start the DNS Server to test and figure the correct values like this:
 
-`python3 dnsserver.py --domain yourdomain.net --soa-master=ns1.yourdomain.net --soa-email=email@yourdomain.net --ns-servers=ns1.yourdomain.net,ns2.yourdomain.net --log-level ERROR --http-port 80 --http-index /somewhere/index.html` 
+`python3 dnsserver.py --domain yourdomain.net --soa-master=ns1.yourdomain.net --soa-email=email@yourdomain.net --ns-servers=ns1.yourdomain.net,ns2.yourdomain.net --log-level DEBUG --http-port 80 --http-index /somewhere/index.html` 
 
 Run `python3 dnsserver.py --help` for a list of arguments:
 
@@ -89,8 +89,8 @@ Create the naked domain:
 Once you have manually tested and figured out how to run your server, use this technique to automate it:
 
 1. Ensure your `localtls` directory is `/root/localtls` and `cd` into it
-2. Create your own service script: `cp service.example.py service.py`
-3. Put the one-liner from [above in "Manually"](#manually) into the newly created `service.py` file
+2. Create your own service script: `cp service.example.sh service.sh`
+3. Put the one-liner from [above in "Manually"](#manually) into the newly created `service.sh` file
 4. Copy the `systemd` file into place, reload `systemd`, start and enable it:
    ```commandline
    sudo cp localtls.service /etc/systemd/system/

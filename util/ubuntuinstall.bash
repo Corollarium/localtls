@@ -10,6 +10,7 @@ sudo pip3 install dnslib cherrypy
 # kill resolved
 echo "Stopping resolved from using port 53..."
 
+# thanks https://www.linuxuprising.com/2020/07/ubuntu-how-to-free-up-port-53-used-by.html
 sudo cat > /etc/systemd/resolved.conf << EOF
 [Resolve]
 DNS=1.1.1.1

@@ -230,7 +230,7 @@ def messageListener():
             conn = listener.accept()
             msg = conn.recv()
             # do something with msg
-            msg = json.loads(msg, encoding="utf-8")
+            msg = json.loads(msg.encode("utf-8"))
             if msg['command'] == "ADDTXT":
                 TXT_RECORDS[msg["key"]] = msg["val"]
             elif msg['command'] == "REMOVETXT":

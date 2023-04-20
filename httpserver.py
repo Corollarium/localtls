@@ -6,6 +6,7 @@ import confs
 import cherrypy
 import subprocess
 import logging
+from cherrypy.lib import static
 
 INDEX_HTML='<html><body>Hi.</body></html>'
 CERT_PATH='/etc/letsencrypt/live/' + confs.BASE_DOMAIN
@@ -16,6 +17,22 @@ class Root(object):
     def index(self):
         return INDEX_HTML
 
+    @cherrypy.expose
+    def fullchain(self):
+        return static.serve_file(os.path.join(CERT_PATH, 'fullchain.pem'), 'application/x-download', 'attachment')
+    
+    @cherrypy.expose
+    def key(self):
+        return static.serve_file(os.path.join(CERT_PATH, 'privkey.pem'), 'application/x-download', 'attachment')
+
+    @cherrypy.expose
+    def cert(self):
+        return static.serve_file(os.path.join(CERT_PATH, 'cert.pem'), 'application/x-download', 'attachment')
+
+    @cherrypy.expose
+    def chain(self):
+        return static.serve_file(os.path.join(CERT_PATH, 'chain.pem'), 'application/x-download', 'attachment')
+    
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def keys(self):
@@ -94,7 +111,6 @@ def run(port, index, certpath=''):
         'server.socket_host': '::',
         'server.socket_port': int(port)
     })
-    
     if port == 443 and confs.BASE_DOMAIN in paths:
         logger.info('Starting TLS server.')
         cert = paths[confs.BASE_DOMAIN]

@@ -43,6 +43,7 @@ elif sys.argv[1] == 'wildcard' or sys.argv[1] == 'naked':
         basename = sys.argv[2] + '-' + sys.argv[1]
         command = [
             'certbot', 'certonly', '--noninteractive', # TEST: '--test-cert',
+            '--key-type', 'rsa',
             '--agree-tos', '--email', sys.argv[3],
             '--manual', '--preferred-challenges=dns', '--manual-public-ip-logging-ok',
             '--manual-auth-hook', 'python3 {0} deploy'.format(script), 

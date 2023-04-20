@@ -44,11 +44,21 @@ The second: you need not only a secure context for the browser, but actual safet
 4. [Run dnsserver.py](#running-the-dns-server).
 5. [Create the certificates running certbotdns.py](#renewing-keys).
 
-## Base installation and deps
+## Prerequisites 
 
-You essentially need Python 3.6 or above, certbot and the dnslib and cherrypy PIPs.
-
-We provide a simple `util/ubuntu-install.bash` script that installs all you need to be able to run this software on a fresh Ubuntu 22.04 installation.
+* Python 3.6 or above (see `util/ubuntu-install.bash` script )
+* certbot and the dnslib and cherrypy PIPs (see `util/ubuntu-install.bash` script )
+* Ubuntu 22.04 Server
+* Static IP
+* 4 DNS entrie for your TLD or sub-domain  (or sub sub domain etc.):  
+    * A record: `local-ip.medicmobile.org` -> `15.188.129.97`
+    * A record: `ns1.local-ip.medicmobile.org` -> `15.188.129.97`
+    * A record: `ns2.local-ip.medicmobile.org` -> `15.188.129.97`
+    * Name server: `NS` ->  
+      ```
+      ns1.local-ip.medicmobile.org
+      ns2.local-ip.medicmobile.org
+      ```
 
 ## Running the DNS server
 
@@ -56,7 +66,7 @@ This software uses port 6000 for internal communication. It is bound to 127.0.0.
 
 ### Manually 
 
-Start the DNS Server to test and figure the correct values like this:
+Start the DNS Server to test and figure the correct values:
 
 `python3 dnsserver.py --domain yourdomain.net --soa-master=ns1.yourdomain.net --soa-email=email@yourdomain.net --ns-servers=ns1.yourdomain.net,ns2.yourdomain.net --log-level DEBUG --http-port 80 --http-index /somewhere/index.html` 
 

@@ -48,8 +48,8 @@ The second: you need not only a secure context for the browser, but actual safet
 
 This was tested on Ubuntu 22.04, but any server that can run all of these should work:
 
-* Python 3.6 or above (see `util/ubuntu-install.bash` script )
-* certbot and the dnslib and cherrypy PIPs (see `util/ubuntu-install.bash` script )
+* Python 3.6 or above (see `util/ubuntu2204-install.bash` script )
+* certbot and the dnslib and cherrypy PIPs (see `util/ubuntu2204-install.bash` script )
 * Static IP
 * 4 DNS entries for your TLD or sub-domain (or sub sub domain etc.). In this example we'll use the `local-ip` sub-domain, the domain `example.com` and the IP `1.2.3.97`. All three values are arbitrary and can be what ever you'd like:  
     * A record: `local-ip.example.com` -> `1.2.3.97`

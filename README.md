@@ -46,11 +46,12 @@ The second: you need not only a secure context for the browser, but actual safet
 
 ## Prerequisites 
 
+This was tested on Ubuntu 22.04, but any server that can run all of these should work:
+
 * Python 3.6 or above (see `util/ubuntu-install.bash` script )
 * certbot and the dnslib and cherrypy PIPs (see `util/ubuntu-install.bash` script )
-* Ubuntu 22.04 Server
 * Static IP
-* 4 DNS entrie for your TLD or sub-domain  (or sub sub domain etc.):  
+* 4 DNS entries for your TLD or sub-domain  (or sub sub domain etc.):  
     * A record: `local-ip.medicmobile.org` -> `15.188.129.97`
     * A record: `ns1.local-ip.medicmobile.org` -> `15.188.129.97`
     * A record: `ns2.local-ip.medicmobile.org` -> `15.188.129.97`

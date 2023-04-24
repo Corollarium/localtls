@@ -38,7 +38,7 @@ The second: you need not only a secure context for the browser, but actual safet
 
 ## Overview
 
-1. Get an Ubuntu server. It doesn't need to be big. Ideally you should have at least one slave, too, because NS entries require at least two servers.
+1. Get a server that can run Python and certbot. It doesn't need to be big. Ideally you should have at least one slave, too, because NS entries require at least two servers.
 2. Point the NS entry of your domain to this server.
 3. [Install deps](#base-installation-and-deps).
 4. [Run dnsserver.py](#running-the-dns-server).

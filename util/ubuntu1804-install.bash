@@ -16,7 +16,7 @@ sudo pip3 install dnslib cherrypy
 
 # kill resolved
 echo "Removing resolved"
-echo "127.0.0.1 $(hostname)" >> /etc/hosts 
+echo "127.0.0.1 $(hostname)" >> /etc/hosts
 sudo systemctl disable systemd-resolved
 sudo systemctl stop systemd-resolved
 rm -f /etc/resolv.conf

@@ -160,16 +160,16 @@ class Resolver(ProxyResolver):
             labelstr = str(request.q.qname)
             logger.info("requestx: %s, %s", labelstr, confs.ONLY_PRIVATE_IPS)
 
-            subdomains = labelstr.split('.')
-            if len(subdomains) == 4: # TODO: dynamic
+            if labelstr[:-1].endswith(confs.BASE_DOMAIN):
                 ip = None
+                subdomain = labelstr[:labelstr.find(confs.BASE_DOMAIN) - 1]
                 try:
-                    ip = ipaddress.ip_address(subdomains[0].replace('-', '.'))
+                    ip = ipaddress.ip_address(subdomain.replace('-', '.'))
                 except:
                     pass
                 try:
                     if ip == None:
-                        ip = ipaddress.ip_address(subdomains[0].replace('-', ':'))
+                        ip = ipaddress.ip_address(subdomain.replace('-', ':'))
                 except:
                     logger.info('invalid ip %s', labelstr)
                     return reply
@@ -184,7 +184,7 @@ class Resolver(ProxyResolver):
                     return reply
 
                 if type(ip) == ipaddress.IPv4Address:
-                    ipv4 = subdomains[0].replace('-', '.')
+                    ipv4 = subdomain.replace('-', '.')
                     logger.info("ip is ipv4 %s", ipv4)
                     r = RR(
                         rname=request.q.qname,
@@ -194,7 +194,7 @@ class Resolver(ProxyResolver):
                     )
                     reply.add_answer(r)
                 elif type(ip) == ipaddress.IPv6Address:
-                    ipv6 = subdomains[0].replace('-', ':')
+                    ipv6 = subdomain.replace('-', ':')
                     logger.info("ip is ipv6 %s", ipv6)
                     r = RR(
                         rname=request.q.qname,
@@ -230,7 +230,7 @@ def messageListener():
             conn = listener.accept()
             msg = conn.recv()
             # do something with msg
-            msg = json.loads(msg, encoding="utf-8")
+            msg = json.loads(msg.encode("utf-8"))
             if msg['command'] == "ADDTXT":
                 TXT_RECORDS[msg["key"]] = msg["val"]
             elif msg['command'] == "REMOVETXT":

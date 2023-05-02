@@ -107,3 +107,6 @@ venv.bak/
 
 # log
 http_error_log
+
+service.sh
+.idea

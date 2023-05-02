@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Wildcard certs for your localhosts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        header {
+            background: rgb(11, 17, 43);
+            margin-bottom: 50px;
+            padding: 30px;
+            padding-right: 30px;
+            padding-left: 30px;
+            color: rgb(255, 255, 255);
+        }
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.42857;
+            color: rgb(51, 51, 51);
+            background-color: rgb(255, 255, 255);
+            margin: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin-right: auto;
+            margin-left: auto;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        .markdown-body a {
+            color: rgb(3, 102, 214);
+            text-decoration: none;
+        }
+        header h1 a {
+            color: rgb(255, 255, 255);
+            text-decoration: none;
+        }
+        code {
+            background-color:#ddd;
+        }
+    </style>
+</head>
+<body>
+<header class="container-fluid">
+    <div class="container">
+        <h1 class="set_url">Domain here</h1>
+        <p>DNS service for local IP addresses with TLS/HTTPS support</p>
+    </div>
+</header>
+<main class="markdown-body container">
+
+    <h1 ><span class="set_url">Domain here</span> - DNS service for local IP addresses with TLS/HTTPS
+        support</h1>
+
+
+    <h2 id="what-is-this-about">What is this about</h2>
+    <p>In one of our projects we faced a problem, that we wanted to connect to websocket on a local network from
+        webpage, that was served from the Internet. In order to use secure web socket connection (wss://) we needed the
+        SSL certificate, but you can't get one for local IP's. The bottomline was that we could not change client
+        machines configuration (no /etc/hosts, no importing of own CA's).</p>
+
+    <p>So we came up with the idea, that we could use wildcard SSL certificate and are using
+        <a href="https://github.com/Corollarium/localtls">localtls</a> as a DNS server and web server
+        and Let's Encrypt for wildcard certs.</p>
+
+    <p style="font-weight: bold">Note: In general you should NEVER share the TLS private key as we are on this site.  Please read the <a href="https://github.com/Corollarium/localtls#security-considerations">Security Considerations</a> BEFORE using this service.</p>
+
+    <h2 >SSL certificate for *.<span class="set_url">Domain here</span></h2>
+    <p>The real good news is, you can get from us SSL certificate for domain <code>*.<span class="set_url">Domain here</span></code> for free
+        :) - here it comes:</p>
+    <ul>
+        <li>Full chain certificates <a href="/fullchain" class="uri">https://<span class="set_url">Domain here</span>/fullchain</a></li>
+        <li>Chain <a href="/chain" class="uri">https://<span class="set_url">Domain here</span>/chain</a></li>
+        <li>Private key <a href="/key" class="uri">https://<span class="set_url">Domain here</span>/key</a></li>
+        <li>Certificate <a href="/cert" class="uri">https://<span class="set_url">Domain here</span>/cert</a></li>
+        <li>REST endpoint with all 4 files above in a single JSON file <a href="/keys" class="uri">https://<span class="set_url">Domain here</span>/keys</a> </li>
+    </ul>
+
+
+    <h2 id="disclaimer">Disclaimer</h2>
+    <p>This service comes without any guarantee and is provided as-is. We will do our best to keep it working, but we
+        reserve the right to turn it off anytime and without any reason.</p>
+</main>
+    <script>
+        const this_url =  window.location.hostname;
+        const set_url = document.getElementsByClassName("set_url");
+
+        for (var i = 0; i < set_url.length; i++) {
+            set_url[i].innerHTML = this_url;
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+[Unit]
+Description=localtls DNS Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/localtls
+ExecStart=/usr/bin/python3 -u /root/localtls/service.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

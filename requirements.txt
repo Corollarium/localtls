@@ -1,2 +1,2 @@
-dnslib==0.9.16
+dnslib==0.9.17
 cherrypy==18.1.2

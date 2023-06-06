@@ -157,10 +157,10 @@ class Resolver(ProxyResolver):
             return reply
         # handle subdomains
         elif self.match_suffix_insensitive(request):
-            labelstr = str(request.q.qname)
+            labelstr = str(request.q.qname).lower()
             logger.info("requestx: %s, %s", labelstr, confs.ONLY_PRIVATE_IPS)
 
-            if labelstr[:-1].endswith(confs.BASE_DOMAIN):
+            if labelstr[:-1].endswith(confs.BASE_DOMAIN.lower()):
                 ip = None
                 subdomain = labelstr[:labelstr.find(confs.BASE_DOMAIN) - 1]
                 try:

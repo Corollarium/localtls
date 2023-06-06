@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/localtls
-ExecStart=/usr/bin/python3 -u /root/localtls/service.py
+ExecStart=/root/localtls/service.sh
 Restart=always
 RestartSec=5
 

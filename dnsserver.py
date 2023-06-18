@@ -24,8 +24,8 @@ import httpserver
 import confs 
 
 handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
-handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s', datefmt='%H:%M:%S'))
+handler.setLevel(logging.DEBUG)
+handler.setFormatter(logging.Formatter('%(levelname)s|%(asctime)s: %(message)s', datefmt='%H:%M:%S'))
 logger = logging.getLogger('localtls')
 logger.addHandler(handler)
 
@@ -74,6 +74,7 @@ def get_ipv6():
 class Resolver(ProxyResolver):
     def __init__(self, upstream):
         super().__init__(upstream, 53, 5)
+
         if confs.SOA_MNAME and confs.SOA_RNAME:
             self.SOA = dnslib.SOA(
                 mname=DNSLabel(confs.SOA_MNAME),
@@ -82,135 +83,141 @@ class Resolver(ProxyResolver):
                     confs.SOA_SERIAL,  # serial number
                     60 * 60 * 1,  # refresh
                     60 * 60 * 2,  # retry
-                    60 * 60 * 24,  # expire
+                    60 * 60 * 24, # expire
                     60 * 60 * 1,  # minimum
                 )
             )
         else:
-            self.SOA=None
+            self.SOA = None
 
         if confs.NS_SERVERS:
             self.NS = [dnslib.NS(i) for i in confs.NS_SERVERS]
         else:
             self.NS = []
 
-    def match_suffix_insensitive(self, request):
-        name = request.q.qname
-        # skip the last dot
-        suffixLower = str(name)[-len(confs.BASE_DOMAIN)-1:-1].lower()
-        return suffixLower == confs.BASE_DOMAIN
-
     def resolve(self, request, handler):
         global TXT_RECORDS
         reply = request.reply()
+        base_domain = confs.BASE_DOMAIN
         name = request.q.qname
-        
-        logger.info("query %s", request.q.qname)
+
+        logger.info('Resolving query: %s', name)
 
         # handle the main domain
-        if (name == confs.BASE_DOMAIN or 
-            name == '_acme-challenge.' + confs.BASE_DOMAIN
-        ):
+        if (name == base_domain or name == base_domain.add('_acme-challenge')):
+            logger.info('Handling base domain or ACME challenge')
+
             r = RR(
-                rname=request.q.qname,
-                rdata=dns.A(confs.LOCAL_IPV4),
-                rtype=QTYPE.A,
-                ttl=60*60
+                rname = request.q.qname,
+                rdata = dns.A(confs.LOCAL_IPV4),
+                rtype = QTYPE.A,
+                ttl = 60 * 60
             )
             reply.add_answer(r)
 
             if self.SOA:
                 r = RR(
-                    rname=request.q.qname,
-                    rdata=self.SOA,
-                    rtype=QTYPE.SOA,
-                    ttl=60*60
+                    rname = request.q.qname,
+                    rdata = self.SOA,
+                    rtype = QTYPE.SOA,
+                    ttl = 60 * 60
                 )
                 reply.add_answer(r)
 
             if len(self.NS):
                 for i in self.NS:
                     r = RR(
-                        rname=request.q.qname,
-                        rdata=i,
-                        rtype=QTYPE.NS,
-                        ttl=60*60
+                        rname = request.q.qname,
+                        rdata = i,
+                        rtype = QTYPE.NS,
+                        ttl = 60 * 60
                     )
                     reply.add_answer(r)
 
             if confs.LOCAL_IPV6:
                 r = RR(
-                    rname=request.q.qname,
-                    rdata=dns.AAAA(confs.LOCAL_IPV6),
-                    rtype=QTYPE.AAAA,
-                    ttl=60*60
+                    rname = request.q.qname,
+                    rdata = dns.AAAA(confs.LOCAL_IPV6),
+                    rtype = QTYPE.AAAA,
+                    ttl = 60 * 60
                 )
                 reply.add_answer(r)
 
             if len(TXT_RECORDS):
                 r = RR(
-                    rname=request.q.qname,
-                    rdata=dns.TXT(['{1}'.format(k, v) for k, v in TXT_RECORDS.items()]),
-                    rtype=QTYPE.TXT
+                    rname = request.q.qname,
+                    rdata = dns.TXT(['{1}'.format(k, v) for k, v in TXT_RECORDS.items()]),
+                    rtype = QTYPE.TXT
                 )
                 reply.add_answer(r)
             return reply
         # handle subdomains
-        elif self.match_suffix_insensitive(request):
-            labelstr = str(request.q.qname)
-            logger.info("requestx: %s, %s", labelstr, confs.ONLY_PRIVATE_IPS)
+        elif name.matchSuffix(base_domain):
+            subdomains = str(name.stripSuffix(base_domain)).rstrip('.')
+            last_subdomain = subdomains.split('.')[-1]
 
-            if labelstr[:-1].endswith(confs.BASE_DOMAIN):
-                ip = None
-                subdomain = labelstr[:labelstr.find(confs.BASE_DOMAIN) - 1]
+            logger.info('Handling subdomain: %s', subdomains)
+
+            if subdomains.lower() in confs.STATIC_SUBDOMAINS:
+                for rec_type, values in confs.STATIC_SUBDOMAINS[subdomains.lower()].items():
+                    if type(values) != list:
+                        values = [values]
+
+                    for value in values:
+                        r = RR(
+                            rname = name,
+                            rdata = TYPE_LOOKUP[rec_type][0](value),
+                            rtype = TYPE_LOOKUP[rec_type][1],
+                            ttl = 24 * 60 * 60
+                        )
+                        reply.add_answer(r)
+
+                logger.info('Found zone for: %s, %d replies', name, len(reply.rr))
+                return reply
+
+            ip = None
+            try:
+                ip = ipaddress.ip_address(last_subdomain.replace('-', '.'))
+            except:
                 try:
-                    ip = ipaddress.ip_address(subdomain.replace('-', '.'))
+                    ip = ipaddress.ip_address(last_subdomain.replace('-', ':'))
                 except:
-                    pass
-                try:
-                    if ip == None:
-                        ip = ipaddress.ip_address(subdomain.replace('-', ':'))
-                except:
-                    logger.info('invalid ip %s', labelstr)
+                    logger.info('Invalid IP: %s', last_subdomain)
                     return reply
 
-                # check if we only want private ips
-                if not ip.is_private and confs.ONLY_PRIVATE_IPS:
-                    return reply
-                if ip.is_reserved and confs.NO_RESERVED_IPS:
-                    return reply
-                # check if it's a valid ip for a machine
-                if ip.is_multicast or ip.is_unspecified:
-                    return reply
+            # check if we only want private ips
+            if not ip.is_private and confs.ONLY_PRIVATE_IPS:
+                return reply
+            if ip.is_reserved and confs.NO_RESERVED_IPS:
+                return reply
+            # check if it's a valid ip for a machine
+            if ip.is_multicast or ip.is_unspecified:
+                return reply
 
-                if type(ip) == ipaddress.IPv4Address:
-                    ipv4 = subdomain.replace('-', '.')
-                    logger.info("ip is ipv4 %s", ipv4)
-                    r = RR(
-                        rname=request.q.qname,
-                        rdata=dns.A(ipv4),
-                        rtype=QTYPE.A,
-                        ttl=24*60*60
-                    )
-                    reply.add_answer(r)
-                elif type(ip) == ipaddress.IPv6Address:
-                    ipv6 = subdomain.replace('-', ':')
-                    logger.info("ip is ipv6 %s", ipv6)
-                    r = RR(
-                        rname=request.q.qname,
-                        rdata=dns.AAAA(ipv6),
-                        rtype=QTYPE.AAAA,
-                        ttl=24*60*60
-                    )
-                    reply.add_answer(r)
-                else:
-                    return reply
-            
-                logger.info('found zone for %s, %d replies', request.q.qname, len(reply.rr))
+            if ip.version == 4:
+                r = RR(
+                    rname = name,
+                    rdata = dns.A(str(ip)),
+                    rtype = QTYPE.A,
+                    ttl = 24 * 60 * 60
+                )
+                reply.add_answer(r)
+            elif ip.version == 6:
+                r = RR(
+                    rname = name,
+                    rdata = dns.AAAA(str(ip)),
+                    rtype = QTYPE.AAAA,
+                    ttl = 24 * 60 * 60
+                )
+                reply.add_answer(r)
+
+            logger.info('Found zone for: %s, %d replies', name, len(reply.rr))
             return reply
+        # fallback server not set
         elif self.address == "":
             return reply
 
+        logger.info('Fallbacking to DNSHandler:Resolver')
         return super().resolve(request, handler)
 
 
@@ -245,6 +252,8 @@ def messageListener():
 
 def main():
     signal.signal(signal.SIGTERM, handle_sig)
+
+    confs.STATIC_SUBDOMAINS = {k.lower(): v for k, v in confs.STATIC_SUBDOMAINS.items()}
 
     parser = argparse.ArgumentParser(description='LocalTLS')
     parser.add_argument(
@@ -308,7 +317,7 @@ def main():
     parser.add_argument(
         '--log-level',
         default = 'ERROR',
-        help = "INFO|WARNING|ERROR|DEBUG"
+        help = "DEBUG|INFO|WARNING|ERROR|CRITICAL"
     )
     args = parser.parse_args()
 
@@ -330,7 +339,7 @@ def main():
 
     confs.ONLY_PRIVATE_IPS = args.only_private_ips
     confs.NO_RESERVED_IPS = args.no_reserved_ips
-    confs.BASE_DOMAIN = args.domain
+    confs.BASE_DOMAIN = DNSLabel(args.domain)
     confs.SOA_MNAME = args.soa_master
     confs.SOA_RNAME = args.soa_email
     if not confs.SOA_MNAME or not confs.SOA_RNAME:
@@ -347,7 +356,7 @@ def main():
     port = int(args.dns_port)
     upstream = args.dns_fallback
     resolver = Resolver(upstream)
-    if args.log_level == 'debug':
+    if logger.getEffectiveLevel() == logging.DEBUG:
         logmode = "+request,+reply,+truncated,+error"
     else:
         logmode = "-request,-reply,-truncated,+error"
@@ -355,7 +364,7 @@ def main():
     udp_server = DNSServer(resolver, port=port, logger=dnslogger)
     tcp_server = DNSServer(resolver, port=port, tcp=True, logger=dnslogger)
 
-    logger.critical('starting DNS server on %s/%s on port %d, upstream DNS server "%s"', confs.LOCAL_IPV4, confs.LOCAL_IPV6, port, upstream)
+    logger.info('Starting DNS server on %s/%s on port %d, upstream DNS server "%s"', confs.LOCAL_IPV4, confs.LOCAL_IPV6, port, upstream)
     udp_server.start_thread()
     tcp_server.start_thread()
 

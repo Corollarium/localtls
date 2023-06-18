@@ -5,9 +5,17 @@ import datetime
 BASE_DOMAIN = ''
 LOCAL_IPV4 = ''
 LOCAL_IPV6 = ''
-SOA_MNAME=''
-SOA_RNAME=''
-SOA_SERIAL=int(datetime.datetime.now().strftime('%Y%m%d%S'))
-NS_SERVERS=[]
+SOA_MNAME = ''
+SOA_RNAME = ''
+SOA_SERIAL = int(datetime.datetime.now().strftime('%Y%m%d%S'))
+NS_SERVERS = []
 ONLY_PRIVATE_IPS = False
 NO_RESERVED_IPS = False
+STATIC_SUBDOMAINS = {
+    #'foo': {
+    #    'A': ['172.24.1.2', '192.168.1.2']
+    #},
+    #'foo.bar': {
+    #    'A': '172.24.1.3'
+    #}
+}

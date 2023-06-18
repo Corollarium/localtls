@@ -20,8 +20,11 @@ This software provides:
 
 * `yourdomain.net` : to your server IP for both `A` and `AAAA` (if it exists) records.
 * `_acme-challenge.yourdomain.net` : necessary for the certbot authentication during renewal
-* `a-b-c-d.yourdomain.net`:  resolves to `A` record to `a.b.c.d`. (replace `.` by `-`).
+* `a-b-c-d.yourdomain.net`:  resolves to `A` record to `a.b.c.d` (replace `.` by `-`).
+* `foo.bar.a-b-c-d.yourdomain.net`:  resolves to `A` record to `a.b.c.d` (replace `.` by `-`).
 * `fe80-[xxx].yourdomain.net`: resolves to `AAAA` record to `fe80:[xxx]` (replace any `:` by `-`).
+* `foo.bar.fe80-[xxx].yourdomain.net`: resolves to `AAAA` record to `fe80:[xxx]` (replace any `:` by `-`).
+* `static.subdomain.definition.yourdomain.net`: resolves to record and data defined in attribute `STATIC_SUBDOMAINS` in `confs.py` module.
 * `anything else`: falls back to `dns-fallback` as defined in config
 
 ## Security considerations
